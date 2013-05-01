@@ -1,3 +1,7 @@
+This forum was built using Discourse. We reproduce here the original
+documentation of Discourse. For more information, head to the original repo.
+
+
 <a href="http://www.discourse.org/">![Logo](https://raw.github.com/discourse/discourse/master/images/discourse.png)</a>
 
 Discourse is the 100% open source, next-generation discussion platform built for the next decade of the Internet.
@@ -24,7 +28,7 @@ Before you get started, ensure you have the following minimum versions: [Ruby 1.
 
 We think of Discourse as a **Civilized Discourse Construction Kit**, an open-source discussion platform that acts as a free, flexible, fundamental building block for online communities of any size, tiny to huge.
 
-Discourse is: 
+Discourse is:
 
 - A **flattened, endlessly scrolling discussion**, which avoids the awkwardness of traditionally threaded and paginated discussion, while still allowing replies to be expanded in place for context.
 
