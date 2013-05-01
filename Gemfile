@@ -140,6 +140,8 @@ gem 'rack-cache', require: false
 
 gem 'rack-cors', require: false
 
+gem 'unicorn', group: :production
+
 # perftools only works on 1.9 atm
 group :profile do
   # travis refuses to install this, instead of fuffing, just avoid it for now
