@@ -54,6 +54,7 @@ class User < ActiveRecord::Base
 
   scope :admins, ->{ where(admin: true) }
   scope :moderators, ->{ where(moderator: true) }
+  scope :staff, ->{ where("moderator = 't' or admin = 't'") }
 
   module NewTopicDuration
     ALWAYS = -1
@@ -267,10 +268,8 @@ class User < ActiveRecord::Base
     User.select(:username).order('last_posted_at desc').limit(20)
   end
 
-  def moderator?
-    # this saves us from checking both, admins are always moderators
-    #
-    # in future we may split this out
+  # any user that is either a moderator or an admin
+  def staff?
     admin || moderator
   end
 
@@ -351,8 +350,9 @@ class User < ActiveRecord::Base
   end
 
   # Don't pass this up to the client - it's meant for server side use
+  # The only spot this is now used is for self oneboxes in open graph data
   def small_avatar_url
-    "https://www.gravatar.com/avatar/#{email_hash}.png?s=200&r=pg&d=identicon"
+    "https://www.gravatar.com/avatar/#{email_hash}.png?s=60&r=pg&d=identicon"
   end
 
   # return null for local avatars, a template for gravatar
