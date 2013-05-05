@@ -141,6 +141,7 @@ gem 'rack-cache', require: false
 gem 'rack-cors', require: false
 
 gem 'unicorn', group: :production
+gem 'rb-inotify', '~> 0.9', group: :production
 
 # perftools only works on 1.9 atm
 group :profile do
