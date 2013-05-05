@@ -30,15 +30,14 @@ Discourse::Application.configure do
 
   # you may use other configuration here for mail eg: sendgrid
 
-  # config.action_mailer.delivery_method = :smtp
-  # config.action_mailer.smtp_settings = {
-  #   :address              => "smtp.sendgrid.net",
-  #   :port                 => 587,
-  #   :domain               => 'YOUR DOMAIN',
-  #   :user_name            => 'YOUR_USER',
-  #   :password             => 'YOUR_PASSWORD',
-  #   :authentication       => 'plain',
-  #   :enable_starttls_auto => true  }
+   config.action_mailer.delivery_method = :smtp
+   config.action_mailer.smtp_settings = {
+     :address              => "smtp.mandrillapp.com",
+     :port                 => 587,
+     :domain               => 'forum.sharelex.fr',
+     :user_name            => ENV["MANDRILL_USERNAME"],
+     :password             => ENV["MANDRILL_API_KEY"],
+     :enable_starttls_auto => true  }
 
   config.action_mailer.delivery_method = :sendmail
   config.action_mailer.sendmail_settings = {arguments: '-i'}
