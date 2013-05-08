@@ -1,3 +1,3 @@
-Discourse::Application.config.secret_token = "SECRET_TOKEN"
+Discourse::Application.config.secret_token = ENV["SECRET_TOKEN"]
 
 
