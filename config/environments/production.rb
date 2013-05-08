@@ -29,6 +29,7 @@ Discourse::Application.configure do
 
 
   # you may use other configuration here for mail eg: sendgrid
+   config.action_mailer.default_url_options = { :host => 'forum.sharelex.fr' }
 
    config.action_mailer.delivery_method = :smtp
    config.action_mailer.perform_deliveries = true
@@ -37,7 +38,6 @@ Discourse::Application.configure do
    config.action_mailer.smtp_settings = {
      :address              => "smtp.mandrillapp.com",
      :port                 => 587,
-     :domain               => 'forum.sharelex.fr',
      :user_name            => ENV["MANDRILL_USERNAME"],
      :password             => ENV["MANDRILL_API_KEY"],
   }
