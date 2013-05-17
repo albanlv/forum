@@ -42,7 +42,6 @@ Discourse::Application.configure do
      :password             => ENV["MANDRILL_API_KEY"],
   }
 
-  config.action_mailer.delivery_method = :sendmail
   config.action_mailer.sendmail_settings = {arguments: '-i'}
 
   # Send deprecation notices to registered listeners
