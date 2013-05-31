@@ -6,6 +6,10 @@ class PostCreator
 
   attr_reader :errors, :opts
 
+  def self.create(user,opts)
+    self.new(user,opts).create
+  end
+
   # Acceptable options:
   #
   #   raw                     - raw text of post
@@ -14,6 +18,7 @@ class PostCreator
   #   acting_user             - The user performing the action might be different than the user
   #                             who is the post "author." For example when copying posts to a new
   #                             topic.
+  #   created_at              - Post creation time (optional)
   #
   #   When replying to a topic:
   #     topic_id              - topic we're replying to
@@ -67,6 +72,7 @@ class PostCreator
       post.no_bump = @opts[:no_bump] if @opts[:no_bump].present?
       post.extract_quoted_post_numbers
       post.acting_user = @opts[:acting_user] if @opts[:acting_user].present?
+      post.created_at = Time.zone.parse(@opts[:created_at].to_s) if @opts[:created_at].present?
 
       post.image_sizes = @opts[:image_sizes] if @opts[:image_sizes].present?
       post.invalidate_oneboxes = @opts[:invalidate_oneboxes] if @opts[:invalidate_oneboxes].present?
@@ -117,7 +123,6 @@ class PostCreator
 
       @user.last_posted_at = post.created_at
       @user.save!
-
       if post.post_number > 1
         MessageBus.publish("/topic/#{post.topic_id}",{
                         id: post.id,
@@ -136,12 +141,14 @@ class PostCreator
       post.save_reply_relationships
     end
 
-    # We need to enqueue jobs after the transaction. Otherwise they might begin before the data has
-    # been comitted.
-    topic_id = @opts[:topic_id] || topic.try(:id)
-    Jobs.enqueue(:feature_topic_users, topic_id: topic.id) if topic_id.present?
-    if post
+    if post && !post.errors.present?
+
+      # We need to enqueue jobs after the transaction. Otherwise they might begin before the data has
+      # been comitted.
+      topic_id = @opts[:topic_id] || topic.try(:id)
+      Jobs.enqueue(:feature_topic_users, topic_id: topic.id) if topic_id.present?
       post.trigger_post_process
+      after_post_create(post)
       after_topic_create(topic) if new_topic
     end
 
@@ -158,7 +165,13 @@ class PostCreator
 
   def secure_group_ids(topic)
     @secure_group_ids ||= if topic.category && topic.category.secure?
-      topic.category.groups.select("groups.id").map{|g| g.id}
+      topic.category.secure_group_ids
+    end
+  end
+
+  def after_post_create(post)
+    if post.post_number > 1
+      TopicTrackingState.publish_unread(post)
     end
   end
 
@@ -171,16 +184,8 @@ class PostCreator
 
     topic.posters = topic.posters_summary
     topic.posts_count = 1
-    topic_json = TopicListItemSerializer.new(topic).as_json
 
-    group_ids = secure_group_ids(topic)
-
-    MessageBus.publish("/latest", topic_json, group_ids: group_ids)
-
-    # If it has a category, add it to the category views too
-    if topic.category
-      MessageBus.publish("/category/#{topic.category.slug}", topic_json, group_ids: group_ids)
-    end
+    TopicTrackingState.publish_new(topic)
   end
 
   def create_topic
@@ -193,6 +198,7 @@ class PostCreator
     category = Category.where(name: @opts[:category]).first
     topic_params[:category_id] = category.id if category.present?
     topic_params[:meta_data] = @opts[:meta_data] if @opts[:meta_data].present?
+    topic_params[:created_at] = Time.zone.parse(@opts[:created_at].to_s) if @opts[:created_at].present?
 
     topic = Topic.new(topic_params)
 
@@ -245,31 +251,25 @@ class PostCreator
 
   def add_users(topic, usernames)
     return unless usernames
-    usernames = usernames.split(',')
-    User.where(username: usernames).each do |u|
-
-      unless guardian.can_send_private_message?(u)
-        topic.errors.add(:archetype, :cant_send_pm)
-        @errors = topic.errors
-        raise ActiveRecord::Rollback.new
-      end
-
-      topic.topic_allowed_users.build(user_id: u.id)
+    User.where(username: usernames.split(',')).each do |user|
+      check_can_send_permission!(topic,user)
+      topic.topic_allowed_users.build(user_id: user.id)
     end
   end
 
   def add_groups(topic, groups)
     return unless groups
-    groups = groups.split(',')
-    Group.where(name: groups).each do |g|
+    Group.where(name: groups.split(',')).each do |group|
+      check_can_send_permission!(topic,group)
+      topic.topic_allowed_groups.build(group_id: group.id)
+    end
+  end
 
-      unless guardian.can_send_private_message?(g)
-        topic.errors.add(:archetype, :cant_send_pm)
-        @errors = topic.errors
-        raise ActiveRecord::Rollback.new
-      end
-
-      topic.topic_allowed_groups.build(group_id: g.id)
+  def check_can_send_permission!(topic,item)
+    unless guardian.can_send_private_message?(item)
+      topic.errors.add(:archetype, :cant_send_pm)
+      @errors = topic.errors
+      raise ActiveRecord::Rollback.new
     end
   end
 end

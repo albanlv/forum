@@ -27,7 +27,6 @@ class SiteSetting < ActiveRecord::Base
   client_setting(:must_approve_users, false)
   client_setting(:ga_tracking_code, "")
   client_setting(:ga_domain_name, "")
-  client_setting(:new_topics_rollup, 1)
   client_setting(:enable_long_polling, true)
   client_setting(:polling_interval, 3000)
   client_setting(:anon_polling_interval, 30000)
@@ -35,6 +34,7 @@ class SiteSetting < ActiveRecord::Base
   client_setting(:max_post_length, 16000)
   client_setting(:min_topic_title_length, 15)
   client_setting(:max_topic_title_length, 255)
+  client_setting(:allow_uncategorized_topics, true)
   client_setting(:min_search_term_length, 3)
   client_setting(:flush_timings_secs, 5)
   client_setting(:supress_reply_directly_below, true)
@@ -113,6 +113,8 @@ class SiteSetting < ActiveRecord::Base
 
   setting(:allow_duplicate_topic_titles, false)
 
+  setting(:staff_like_weight, 3)
+
   setting(:add_rel_nofollow_to_user_content, true)
   setting(:exclude_rel_nofollow_domains, '')
   setting(:post_excerpt_maxlength, 300)
@@ -129,6 +131,9 @@ class SiteSetting < ActiveRecord::Base
 
   setting(:send_welcome_message, true)
 
+  client_setting(:enable_local_logins, true)
+  client_setting(:enable_local_account_create, true)
+
   client_setting(:enable_google_logins, true)
   client_setting(:enable_yahoo_logins, true)
 
@@ -140,6 +145,10 @@ class SiteSetting < ActiveRecord::Base
   setting(:facebook_app_id, '')
   setting(:facebook_app_secret, '')
 
+  client_setting(:enable_cas_logins, false)
+  setting(:cas_hostname, '')
+  setting(:cas_domainname, '')
+
   client_setting(:enable_github_logins, false)
   setting(:github_client_id, '')
   setting(:github_client_secret, '')
@@ -148,7 +157,11 @@ class SiteSetting < ActiveRecord::Base
 
   setting(:enforce_global_nicknames, true)
   setting(:discourse_org_access_key, '')
+  
   setting(:enable_s3_uploads, false)
+  setting(:s3_access_key_id, '')
+  setting(:s3_secret_access_key, '')
+  setting(:s3_region, 'us-west-1')
   setting(:s3_upload_bucket, '')
 
   setting(:default_trust_level, 0)
@@ -216,11 +229,26 @@ class SiteSetting < ActiveRecord::Base
   end
 
   def self.homepage
-    top_menu.split('|')[0]
+    # TODO objectify this
+    x = top_menu.split('|')[0].split(',')[0]
   end
 
   def self.anonymous_homepage
-    top_menu.split('|').select{ |f| ['latest', 'hot', 'categories', 'category'].include? f }[0]
+    # TODO objectify this
+    top_menu.split('|').map{|f| f.split(',')[0] }.select{ |f| ['latest', 'hot', 'categories', 'category'].include? f}[0]
   end
 
 end
+
+# == Schema Information
+#
+# Table name: site_settings
+#
+#  id         :integer          not null, primary key
+#  name       :string(255)      not null
+#  data_type  :integer          not null
+#  value      :text
+#  created_at :datetime         not null
+#  updated_at :datetime         not null
+#
+

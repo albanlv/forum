@@ -12,7 +12,6 @@ Discourse.TopicView = Discourse.View.extend(Discourse.Scrolling, {
   topicBinding: 'controller.content',
   userFiltersBinding: 'controller.userFilters',
   classNameBindings: ['controller.multiSelect:multi-select', 'topic.archetype', 'topic.category.secure:secure_category'],
-  siteBinding: 'Discourse.site',
   progressPosition: 1,
   menuVisible: true,
   SHORT_POST: 1200,
@@ -307,6 +306,11 @@ Discourse.TopicView = Discourse.View.extend(Discourse.Scrolling, {
   },
 
   finishedEdit: function() {
+
+    // TODO: This should be in a controller and use proper text fields
+
+    var topicView = this;
+
     if (this.get('editingTopic')) {
       var topic = this.get('topic');
       // retrieve the title from the text field
@@ -327,9 +331,17 @@ Discourse.TopicView = Discourse.View.extend(Discourse.Scrolling, {
           title: title,
           fancy_title: title
         });
+
+      }, function(error) {
+        topicView.set('editingTopic', true);
+        if (error && error.responseText) {
+          bootbox.alert($.parseJSON(error.responseText).errors[0]);
+        } else {
+          bootbox.alert(Em.String.i18n('generic_error'));
+        }
       });
       // close editing mode
-      this.set('editingTopic', false);
+      topicView.set('editingTopic', false);
     }
   },
 
@@ -340,9 +352,9 @@ Discourse.TopicView = Discourse.View.extend(Discourse.Scrolling, {
     return false;
   },
 
-  showFavoriteButton: (function() {
-    return Discourse.currentUser && !this.get('topic.isPrivateMessage');
-  }).property('topic.isPrivateMessage'),
+  showFavoriteButton: function() {
+    return Discourse.User.current() && !this.get('topic.isPrivateMessage');
+  }.property('topic.isPrivateMessage'),
 
   resetExamineDockCache: function() {
     this.docAt = null;
@@ -403,8 +415,8 @@ Discourse.TopicView = Discourse.View.extend(Discourse.Scrolling, {
     });
 
     this.nonUrgentPositionUpdate({
-        userActive: userActive,
-        currentPost: currentPost || this.getPost($(rows[info.bottom])).get('post_number')
+      userActive: userActive,
+      currentPost: currentPost || this.getPost($(rows[info.bottom])).get('post_number')
     });
 
     offset = window.pageYOffset || $('html').scrollTop();
@@ -441,20 +453,41 @@ Discourse.TopicView = Discourse.View.extend(Discourse.Scrolling, {
     }
   },
 
+  topicTrackingState: function(){
+    return Discourse.TopicTrackingState.current();
+  }.property(),
+
   browseMoreMessage: (function() {
     var category, opts;
 
     opts = {
       latestLink: "<a href=\"/\">" + (Em.String.i18n("topic.view_latest_topics")) + "</a>"
     };
+
     if (category = this.get('controller.content.category')) {
       opts.catLink = Discourse.Utilities.categoryLink(category);
-      return Ember.String.i18n("topic.read_more_in_category", opts);
     } else {
       opts.catLink = "<a href=\"" + Discourse.getURL("/categories") + "\">" + (Em.String.i18n("topic.browse_all_categories")) + "</a>";
+    }
+
+    var tracking = this.get('topicTrackingState');
+
+    var unreadTopics = tracking.countUnread();
+    var newTopics = tracking.countNew();
+
+    if (newTopics + unreadTopics > 0) {
+      if(category) {
+        return I18n.messageFormat("topic.read_more_in_category_MF", {"UNREAD": unreadTopics, "NEW": newTopics, catLink: opts.catLink})
+      } else {
+        return I18n.messageFormat("topic.read_more_MF", {"UNREAD": unreadTopics, "NEW": newTopics, latestLink: opts.latestLink})
+      }
+    }
+    else if (category) {
+      return Ember.String.i18n("topic.read_more_in_category", opts);
+    } else {
       return Ember.String.i18n("topic.read_more", opts);
     }
-  }).property()
+  }).property('topicTrackingState.messageCount')
 
 });
 
@@ -475,7 +508,7 @@ Discourse.TopicView.reopenClass({
         expectedOffset = title.height() - header.find('.contents').height();
 
         if (expectedOffset < 0) {
-            expectedOffset = 0;
+          expectedOffset = 0;
         }
 
         $('html, body').scrollTop(existing.offset().top - (header.outerHeight(true) + expectedOffset));

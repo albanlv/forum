@@ -2,8 +2,6 @@ require 'spec_helper'
 
 describe TopicsController do
 
-
-
   context 'move_posts' do
     it 'needs you to be logged in' do
       lambda { xhr :post, :move_posts, topic_id: 111, title: 'blah', post_ids: [1,2,3] }.should raise_error(Discourse::NotLoggedIn)
@@ -284,12 +282,12 @@ describe TopicsController do
       end
 
       it "changes the user's starred flag when the parameter is present" do
-        Topic.any_instance.expects(:toggle_mute).with(@topic.user, true)
+        Topic.any_instance.expects(:toggle_mute).with(@topic.user)
         xhr :put, :mute, topic_id: @topic.id, starred: 'true'
       end
 
       it "removes the user's starred flag when the parameter is not true" do
-        Topic.any_instance.expects(:toggle_mute).with(@topic.user, false)
+        Topic.any_instance.expects(:toggle_mute).with(@topic.user)
         xhr :put, :unmute, topic_id: @topic.id, starred: 'false'
       end
 
@@ -371,18 +369,18 @@ describe TopicsController do
     let!(:p2) { Fabricate(:post, user: topic.user) }
 
     it 'shows a topic correctly' do
-      xhr :get, :show, id: topic.id
+      xhr :get, :show, topic_id: topic.id, slug: topic.slug
       response.should be_success
     end
 
     it 'records a view' do
-      lambda { xhr :get, :show, id: topic.id }.should change(View, :count).by(1)
+      lambda { xhr :get, :show, topic_id: topic.id, slug: topic.slug }.should change(View, :count).by(1)
     end
 
     it 'tracks a visit for all html requests' do
       current_user = log_in(:coding_horror)
       TopicUser.expects(:track_visit!).with(topic, current_user)
-      get :show, id: topic.id
+      get :show, topic_id: topic.id, slug: topic.slug
     end
 
     context 'consider for a promotion' do
@@ -396,7 +394,7 @@ describe TopicsController do
       it "reviews the user for a promotion if they're new" do
         user.update_column(:trust_level, TrustLevel.levels[:newuser])
         Promotion.any_instance.expects(:review)
-        get :show, id: topic.id
+        get :show, topic_id: topic.id, slug: topic.slug
       end
     end
 
@@ -405,34 +403,34 @@ describe TopicsController do
       it 'grabs first page when no filter is provided' do
         SiteSetting.stubs(:posts_per_page).returns(20)
         TopicView.any_instance.expects(:filter_posts_in_range).with(0, 20)
-        xhr :get, :show, id: topic.id
+        xhr :get, :show, topic_id: topic.id, slug: topic.slug
       end
 
       it 'grabs first page when first page is provided' do
         SiteSetting.stubs(:posts_per_page).returns(20)
         TopicView.any_instance.expects(:filter_posts_in_range).with(0, 20)
-        xhr :get, :show, id: topic.id, page: 1
+        xhr :get, :show, topic_id: topic.id, slug: topic.slug, page: 1
       end
 
       it 'grabs correct range when a page number is provided' do
         SiteSetting.stubs(:posts_per_page).returns(20)
         TopicView.any_instance.expects(:filter_posts_in_range).with(20, 40)
-        xhr :get, :show, id: topic.id, page: 2
+        xhr :get, :show, topic_id: topic.id, slug: topic.slug, page: 2
       end
 
       it 'delegates a post_number param to TopicView#filter_posts_near' do
         TopicView.any_instance.expects(:filter_posts_near).with(p2.post_number)
-        xhr :get, :show, id: topic.id, post_number: p2.post_number
+        xhr :get, :show, topic_id: topic.id, slug: topic.slug, post_number: p2.post_number
       end
 
       it 'delegates a posts_after param to TopicView#filter_posts_after' do
         TopicView.any_instance.expects(:filter_posts_after).with(p1.post_number)
-        xhr :get, :show, id: topic.id, posts_after: p1.post_number
+        xhr :get, :show, topic_id: topic.id, slug: topic.slug, posts_after: p1.post_number
       end
 
       it 'delegates a posts_before param to TopicView#filter_posts_before' do
         TopicView.any_instance.expects(:filter_posts_before).with(p2.post_number)
-        xhr :get, :show, id: topic.id, posts_before: p2.post_number
+        xhr :get, :show, topic_id: topic.id, slug: topic.slug, posts_before: p2.post_number
       end
 
     end
@@ -487,6 +485,11 @@ describe TopicsController do
         it 'triggers a change of category' do
           Topic.any_instance.expects(:change_category).with('incredible')
           xhr :put, :update, topic_id: @topic.id, slug: @topic.title, category: 'incredible'
+        end
+
+        it "returns errors with invalid titles" do
+          xhr :put, :update, topic_id: @topic.id, slug: @topic.title, title: 'asdf'
+          expect(response).not_to be_success
         end
 
       end

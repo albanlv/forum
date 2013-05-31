@@ -19,6 +19,7 @@ module Discourse
     # -- all .rb files in that directory are automatically loaded.
 
     require 'discourse'
+    require 'js_locale_helper'
 
     # mocha hates us, active_support/testing/mochaing.rb line 2 is requiring the wrong
     #  require, patched in source, on upgrade remove this
@@ -31,7 +32,8 @@ module Discourse
     end
 
     # Custom directories with classes and modules you want to be autoloadable.
-    config.autoload_paths += %W(#{config.root}/app/serializers)
+    config.autoload_paths += Dir["#{config.root}/app/serializers"]
+    config.autoload_paths += Dir["#{config.root}/lib/validators/"]
 
     # Only load the plugins named here, in the order given (default is alphabetical).
     # :all can be used as a placeholder for all plugins not explicitly named.
