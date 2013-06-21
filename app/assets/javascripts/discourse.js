@@ -22,6 +22,9 @@ Discourse = Ember.Application.createWithMixins({
   // The highest seen post number by topic
   highestSeenByTopic: {},
 
+  // Helps with integration tests
+  URL_FIXTURES: {},
+
   getURL: function(url) {
 
     // If it's a non relative URL, return it.
@@ -34,6 +37,37 @@ Discourse = Ember.Application.createWithMixins({
     return u + url;
   },
 
+  /**
+    This custom resolver allows us to find admin templates without calling .render
+    even though our path formats are slightly different than what ember prefers.
+  */
+  resolver: Ember.DefaultResolver.extend({
+
+    resolveTemplate: function(parsedName) {
+      var resolvedTemplate = this._super(parsedName);
+      if (resolvedTemplate) { return resolvedTemplate; }
+
+      var decamelized = parsedName.fullNameWithoutType.decamelize();
+
+      // See if we can find it with slashes instead of underscores
+      var slashed = decamelized.replace("_", "/");
+      resolvedTemplate = Ember.TEMPLATES[slashed];
+      if (resolvedTemplate) { return resolvedTemplate; }
+
+      // If we can't find a template, check to see if it's similar to how discourse
+      // lays out templates like: adminEmail => admin/templates/email
+      if (parsedName.fullNameWithoutType.indexOf('admin') === 0) {
+        decamelized = decamelized.replace(/^admin\_/, 'admin/templates/');
+        decamelized = decamelized.replace(/^admin\./, 'admin/templates/');
+        decamelized = decamelized.replace(/\./, '_');
+
+        resolvedTemplate = Ember.TEMPLATES[decamelized];
+        if (resolvedTemplate) { return resolvedTemplate; }
+      }
+      return Ember.TEMPLATES.not_found;
+    }
+  }),
+
   titleChanged: function() {
     var title;
     title = "";
@@ -44,7 +78,7 @@ Discourse = Ember.Application.createWithMixins({
     $('title').text(title);
 
     var notifyCount = this.get('notifyCount');
-    if (notifyCount > 0) {
+    if (notifyCount > 0 && !Discourse.User.current('dynamic_favicon')) {
       title = "(" + notifyCount + ") " + title;
     }
     // chrome bug workaround see: http://stackoverflow.com/questions/2952384/changing-the-window-title-when-focussing-the-window-doesnt-work-in-chrome
@@ -53,6 +87,14 @@ Discourse = Ember.Application.createWithMixins({
       document.title = title;
     }, 200);
   }.observes('title', 'hasFocus', 'notifyCount'),
+
+  faviconChanged: function() {
+    if(Discourse.User.current('dynamic_favicon')) {
+      $.faviconNotify(
+        Discourse.SiteSettings.favicon_url, this.get('notifyCount')
+      );
+    }
+  }.observes('notifyCount'),
 
   // The classes of buttons to show on a post
   postButtons: function() {
@@ -141,6 +183,10 @@ Discourse = Ember.Application.createWithMixins({
         xhr.setRequestHeader('X-CSRF-Token', csrfToken);
       }
     });
+
+    setInterval(function(){
+      Discourse.Formatter.updateRelativeAge($('.relative-date'));
+    },60 * 1000);
   },
 
   /**
@@ -162,6 +208,16 @@ Discourse = Ember.Application.createWithMixins({
     return loginController.authenticationComplete(options);
   },
 
+  loginRequired: function() {
+    return (
+      Discourse.SiteSettings.login_required && !Discourse.User.current()
+    );
+  }.property(),
+
+  redirectIfLoginRequired: function(route) {
+    if(this.get('loginRequired')) { route.transitionTo('login'); }
+  },
+
   /**
     Our own $.ajax method. Makes sure the .then method executes in an Ember runloop
     for performance reasons. Also automatically adjusts the URL to support installs
@@ -172,6 +228,7 @@ Discourse = Ember.Application.createWithMixins({
   ajax: function() {
 
     var url, args;
+
     if (arguments.length === 1) {
       if (typeof arguments[0] === "string") {
         url = arguments[0];
@@ -191,6 +248,14 @@ Discourse = Ember.Application.createWithMixins({
     }
     if (args.error) {
       console.warning("DEPRECATION: Discourse.ajax should use promises, received 'error' callback");
+    }
+
+    // If we have URL_FIXTURES, load from there instead (testing)
+    var fixture = Discourse.URL_FIXTURES && Discourse.URL_FIXTURES[url];
+    if (fixture) {
+      return Ember.Deferred.promise(function(promise) {
+        promise.resolve(fixture);
+      })
     }
 
     return Ember.Deferred.promise(function (promise) {
@@ -241,7 +306,7 @@ Discourse = Ember.Application.createWithMixins({
 
       bus.subscribe("/categories", function(data){
         var site = Discourse.Site.instance();
-        data.categories.each(function(c){
+        _.each(data.categories,function(c){
           site.updateCategory(c)
         });
       });

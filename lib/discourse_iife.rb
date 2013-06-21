@@ -6,9 +6,13 @@ class DiscourseIIFE < Sprockets::Processor
     path = context.pathname.to_s
 
     # Only discourse or admin paths
-    return data unless (path =~ /\/javascripts\/discourse/ || path =~ /\/javascripts\/admin/)
+    return data unless (path =~ /\/javascripts\/discourse/ || path =~ /\/javascripts\/admin/ || path =~ /\/test\/javascripts/)
 
-    # Ugh, ignore translations
+    # Ignore the js helpers
+    return data if (path =~ /test\_helper\.js/)
+    return data if (path =~ /javascripts\/helpers\//)
+
+    # Ignore translations
     return data if (path =~ /\/translations/)
 
     # We don't add IIFEs to handlebars
