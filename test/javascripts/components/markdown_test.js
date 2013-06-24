@@ -1,6 +1,10 @@
 /*global sanitizeHtml:true */
 
-module("Discourse.Markdown");
+module("Discourse.Markdown", {
+  setup: function() {
+    Discourse.SiteSettings.traditional_markdown_linebreaks = false;
+  }
+});
 
 var cooked = function(input, expected, text) {
   equal(Discourse.Markdown.cook(input, {mentionLookup: false }), expected, text);
@@ -8,11 +12,27 @@ var cooked = function(input, expected, text) {
 
 var cookedOptions = function(input, opts, expected, text) {
   equal(Discourse.Markdown.cook(input, opts), expected, text);
-}
+};
 
 test("basic cooking", function() {
   cooked("hello", "<p>hello</p>", "surrounds text with paragraphs");
-  cooked("1\n2\n3", "<p>1 <br>\n2 <br>\n3</p>", "automatically handles trivial newlines");
+});
+
+test("Line Breaks", function() {
+
+  var input = "1\n2\n3";
+  cooked(input, "<p>1 <br>\n2 <br>\n3</p>", "automatically handles trivial newlines");
+
+  var traditionalOutput = "<p>1\n2\n3</p>";
+
+  cookedOptions(input,
+                {traditional_markdown_linebreaks: true},
+                traditionalOutput,
+                "It supports traditional markdown via an option");
+
+  Discourse.SiteSettings.traditional_markdown_linebreaks = true;
+  cooked(input, traditionalOutput, "It supports traditional markdown via a Site Setting");
+
 });
 
 test("Links", function() {
