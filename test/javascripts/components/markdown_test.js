@@ -69,13 +69,13 @@ test("Quotes", function() {
   cookedOptions("1[quote=\"bob, post:1\"]my quote[/quote]2",
                 { topicId: 2, lookupAvatar: function(name) { return "" + name; } },
                 "<p>1</p><aside class='quote' data-post=\"1\" >\n  <div class='title'>\n    <div class='quote-controls'></div>\n" +
-                "  bob\n  bob\n  said:\n  </div>\n  <blockquote>my quote</blockquote>\n</aside>\n<p> <br>\n2</p>",
+                "  bob\n  bob\n  said:\n  </div>\n  <blockquote>my quote</blockquote>\n</aside>\n<p></p>\n\n<p>2</p>",
                 "handles quotes properly");
 
   cookedOptions("1[quote=\"bob, post:1\"]my quote[/quote]2",
                 { topicId: 2, lookupAvatar: function(name) { } },
                 "<p>1</p><aside class='quote' data-post=\"1\" >\n  <div class='title'>\n    <div class='quote-controls'></div>\n" +
-                "  \n  bob\n  said:\n  </div>\n  <blockquote>my quote</blockquote>\n</aside>\n<p> <br>\n2</p>",
+                "  \n  bob\n  said:\n  </div>\n  <blockquote>my quote</blockquote>\n</aside>\n<p></p>\n\n<p>2</p>",
                 "includes no avatar if none is found");
 });
 
@@ -117,5 +117,21 @@ test("SanitizeHTML", function() {
 
   equal(sanitizeHtml("<div><script>alert('hi');</script></div>"), "<div></div>");
   equal(sanitizeHtml("<div><p class=\"funky\" wrong='1'>hello</p></div>"), "<div><p class=\"funky\">hello</p></div>");
+
+});
+
+test("URLs in BBCode tags", function() {
+
+  cooked("[img]http://eviltrout.com/eviltrout.png[/img][img]http://samsaffron.com/samsaffron.png[/img]",
+         "<p><img src=\"http://eviltrout.com/eviltrout.png\"><img src=\"http://samsaffron.com/samsaffron.png\"></p>",
+         "images are properly parsed");
+
+  cooked("[url]http://discourse.org[/url]",
+         "<p><a href=\"http://discourse.org\">http://discourse.org</a></p>",
+         "links are properly parsed");
+
+  cooked("[url=http://discourse.org]discourse[/url]",
+         "<p><a href=\"http://discourse.org\">discourse</a></p>",
+         "named links are properly parsed");
 
 });
