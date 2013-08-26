@@ -1,3 +1,5 @@
+require_dependency 'trust_level'
+
 class AdminUserIndexQuery
   def initialize(params = {}, klass = User, trust_levels = TrustLevel.levels)
     @params = params
@@ -27,7 +29,8 @@ class AdminUserIndexQuery
       when 'admins' then @query.where('admin = ?', true)
       when 'moderators' then @query.where('moderator = ?', true)
       when 'blocked' then @query.blocked
-      when 'pending' then @query.where('approved = false')
+      when 'banned' then @query.banned
+      when 'pending' then @query.not_banned.where('approved = false')
     end
   end
 

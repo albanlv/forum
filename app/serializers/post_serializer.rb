@@ -39,8 +39,10 @@ class PostSerializer < BasicPostSerializer
              :draft_sequence,
              :hidden,
              :hidden_reason_id,
+             :trust_level,
              :deleted_at,
-             :trust_level
+             :deleted_by,
+             :user_deleted
 
 
   def moderator?
@@ -72,7 +74,6 @@ class PostSerializer < BasicPostSerializer
   end
 
   def link_counts
-
     return @single_post_link_counts if @single_post_link_counts.present?
 
     # TODO: This could be better, just porting the old one over
@@ -110,12 +111,21 @@ class PostSerializer < BasicPostSerializer
   def reply_to_user
     {
       username: object.reply_to_user.username,
-      name: object.reply_to_user.name
+      name: object.reply_to_user.name,
+      avatar_template: object.reply_to_user.avatar_template
     }
   end
 
   def bookmarked
     true
+  end
+
+  def deleted_by
+    BasicUserSerializer.new(object.deleted_by, root: false).as_json
+  end
+
+  def include_deleted_by?
+    scope.is_staff? && object.deleted_by.present?
   end
 
   # Summary of the actions taken on this post

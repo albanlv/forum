@@ -109,7 +109,7 @@ describe Notification do
   describe '@mention' do
 
     it "calls email_user_mentioned on creating a notification" do
-      UserEmailObserver.any_instance.expects(:email_user_mentioned).with(instance_of(Notification))
+      UserEmailObserver.any_instance.expects(:after_commit).with(instance_of(Notification))
       Fabricate(:notification)
     end
 
@@ -117,7 +117,7 @@ describe Notification do
 
   describe '@mention' do
     it "calls email_user_quoted on creating a quote notification" do
-      UserEmailObserver.any_instance.expects(:email_user_quoted).with(instance_of(Notification))
+      UserEmailObserver.any_instance.expects(:after_commit).with(instance_of(Notification))
       Fabricate(:quote_notification)
     end
   end
@@ -215,7 +215,7 @@ describe Notification do
 
       Notification.create!(read: false, user_id: p2.user_id, topic_id: p2.topic_id, post_number: p2.post_number, data: '[]',
                            notification_type: Notification.types[:liked])
-      p2.trash!
+      p2.trash!(p.user)
 
       # we may want to make notification "trashable" but for now we nuke pm notifications from deleted topics/posts
       Notification.ensure_consistency!

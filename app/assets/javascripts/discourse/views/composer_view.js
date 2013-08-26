@@ -191,15 +191,21 @@ Discourse.ComposerView = Discourse.View.extend({
     });
 
     this.editor = editor = Discourse.Markdown.createEditor({
-      lookupAvatar: function(username) {
-        return Discourse.Utilities.avatarImg({ username: username, size: 'tiny' });
+      lookupAvatarByPostNumber: function(postNumber) {
+        var posts = composerView.get('controller.controllers.topic.postStream.posts');
+        if (posts) {
+          var quotedPost = posts.findProperty("post_number", postNumber);
+          if (quotedPost) {
+            return Discourse.Utilities.tinyAvatar(quotedPost.get("avatar_template"));
+          }
+        }
       }
     });
 
     var $uploadTarget = $('#reply-control');
     this.editor.hooks.insertImageDialog = function(callback) {
       callback(null);
-      composerView.get('controller').send('showImageSelector', composerView);
+      composerView.get('controller').send('showUploadSelector', composerView);
       return true;
     };
 
@@ -252,7 +258,7 @@ Discourse.ComposerView = Discourse.View.extend({
 
     // submit - this event is triggered for each upload
     $uploadTarget.on('fileuploadsubmit', function (e, data) {
-      var result = Discourse.Utilities.validateFilesForUpload(data.files);
+      var result = Discourse.Utilities.validateUploadedFiles(data.files);
       // reset upload status when everything is ok
       if (result) composerView.setProperties({ uploadProgress: 0, isUploading: true });
       return result;
@@ -285,9 +291,9 @@ Discourse.ComposerView = Discourse.View.extend({
 
     // done
     $uploadTarget.on('fileuploaddone', function (e, data) {
-      var upload = data.result;
-      var html = "<img src=\"" + upload.url + "\" width=\"" + upload.width + "\" height=\"" + upload.height + "\">";
-      composerView.addMarkdown(html);
+      var markdown = Discourse.Utilities.getUploadMarkdown(data.result);
+      // appends a space at the end of the inserted markdown
+      composerView.addMarkdown(markdown + " ");
       composerView.set('isUploading', false);
     });
 
@@ -295,28 +301,8 @@ Discourse.ComposerView = Discourse.View.extend({
     $uploadTarget.on('fileuploadfail', function (e, data) {
       // hide upload status
       composerView.set('isUploading', false);
-      // deal with meaningful errors first
-      if (data.jqXHR) {
-        switch (data.jqXHR.status) {
-          // 0 == cancel from the user
-          case 0: return;
-          // 413 == entity too large, returned usually from nginx
-          case 413:
-            bootbox.alert(Em.String.i18n('post.errors.upload_too_large', {max_size_kb: Discourse.SiteSettings.max_upload_size_kb}));
-            return;
-          // 415 == media type not authorized
-          case 415:
-            var extensions = Discourse.SiteSettings.authorized_extensions.replace(/\|/g, ", ");
-            bootbox.alert(Em.String.i18n('post.errors.upload_not_authorized', { authorized_extensions: extensions }));
-            return;
-          // 422 == there has been an error on the server (mostly due to FastImage)
-          case 422:
-            bootbox.alert(data.jqXHR.responseText);
-            return;
-        }
-      }
-      // otherwise, display a generic error message
-      bootbox.alert(Em.String.i18n('post.errors.upload'));
+      // display an error message
+      Discourse.Utilities.displayErrorForUpload(data);
     });
 
     // I hate to use Em.run.later, but I don't think there's a way of waiting for a CSS transition
@@ -324,11 +310,7 @@ Discourse.ComposerView = Discourse.View.extend({
     return Em.run.later(jQuery, (function() {
       var replyTitle = $('#reply-title');
       composerView.resize();
-      if (replyTitle.length) {
-        return replyTitle.putCursorAtEnd();
-      } else {
-        return $wmdInput.putCursorAtEnd();
-      }
+      return replyTitle.length ? replyTitle.putCursorAtEnd() : $wmdInput.putCursorAtEnd();
     }), 300);
   },
 
@@ -378,11 +360,11 @@ Discourse.ComposerView = Discourse.View.extend({
         missingChars = this.get('model.missingTitleCharacters'),
         reason;
     if( titleLength < 1 ){
-      reason = Em.String.i18n('composer.error.title_missing');
+      reason = I18n.t('composer.error.title_missing');
     } else if( missingChars > 0 ) {
-      reason = Em.String.i18n('composer.error.title_too_short', {min: this.get('model.minimumTitleLength')});
+      reason = I18n.t('composer.error.title_too_short', {min: this.get('model.minimumTitleLength')});
     } else if( titleLength > Discourse.SiteSettings.max_topic_title_length ) {
-      reason = Em.String.i18n('composer.error.title_too_long', {max: Discourse.SiteSettings.max_topic_title_length});
+      reason = I18n.t('composer.error.title_too_long', {max: Discourse.SiteSettings.max_topic_title_length});
     }
 
     if( reason ) {
@@ -392,7 +374,7 @@ Discourse.ComposerView = Discourse.View.extend({
 
   categoryValidation: function() {
     if( !Discourse.SiteSettings.allow_uncategorized_topics && !this.get('model.categoryName')) {
-      return Discourse.InputValidation.create({ failed: true, reason: Em.String.i18n('composer.error.category_missing') });
+      return Discourse.InputValidation.create({ failed: true, reason: I18n.t('composer.error.category_missing') });
     }
   }.property('model.categoryName'),
 
@@ -401,9 +383,9 @@ Discourse.ComposerView = Discourse.View.extend({
         missingChars = this.get('model.missingReplyCharacters'),
         reason;
     if( replyLength < 1 ){
-      reason = Em.String.i18n('composer.error.post_missing');
+      reason = I18n.t('composer.error.post_missing');
     } else if( missingChars > 0 ) {
-      reason = Em.String.i18n('composer.error.post_length', {min: this.get('model.minimumPostLength')});
+      reason = I18n.t('composer.error.post_length', {min: this.get('model.minimumPostLength')});
     }
 
     if( reason ) {
@@ -415,7 +397,7 @@ Discourse.ComposerView = Discourse.View.extend({
 // not sure if this is the right way, keeping here for now, we could use a mixin perhaps
 Discourse.NotifyingTextArea = Ember.TextArea.extend({
   placeholder: function() {
-    return Em.String.i18n(this.get('placeholderKey'));
+    return I18n.t(this.get('placeholderKey'));
   }.property('placeholderKey'),
 
   didInsertElement: function() {

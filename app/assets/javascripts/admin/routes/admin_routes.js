@@ -25,8 +25,15 @@ Discourse.Route.buildRoutes(function() {
     this.resource('adminReports', { path: '/reports/:type' });
 
     this.resource('adminFlags', { path: '/flags' }, function() {
+      this.route('index', { path: '/' });
       this.route('active', { path: '/active' });
       this.route('old', { path: '/old' });
+    });
+
+    this.resource('adminLogs', { path: '/logs' }, function() {
+      this.route('staffActionLogs', { path: '/staff_action_logs' });
+      this.route('screenedEmails', { path: '/screened_emails' });
+      this.route('screenedUrls', { path: '/screened_urls' });
     });
 
     this.route('groups', {path: '/groups'});
@@ -34,18 +41,10 @@ Discourse.Route.buildRoutes(function() {
     this.resource('adminUsers', { path: '/users' }, function() {
       this.resource('adminUser', { path: '/:username' });
       this.resource('adminUsersList', { path: '/list' }, function() {
-        this.route('active', { path: '/active' });
-        this.route('new', { path: '/new' });
-        this.route('pending', { path: '/pending' });
-        this.route('admins', { path: '/admins' });
-        this.route('moderators', { path: '/moderators' });
-        this.route('blocked', { path: '/blocked' });
-        // Trust Levels:
-        this.route('newuser', { path: '/newuser' });
-        this.route('basic', { path: '/basic' });
-        this.route('regular', { path: '/regular' });
-        this.route('leaders', { path: '/leaders' });
-        this.route('elders', { path: '/elders' });
+        _.each(['active', 'new', 'pending', 'admins', 'moderators', 'blocked', 'banned',
+                'newuser', 'basic', 'regular', 'leaders', 'elders'], function(x) {
+          this.route(x, { path: '/' + x });
+        }, this);
       });
     });
 

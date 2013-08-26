@@ -14,6 +14,18 @@ class ApplicationController < ActionController::Base
 
   protect_from_forgery
 
+  # Default Rails 3.2 lets the request through with a blank session
+  #  we are being more pedantic here and nulling session / current_user
+  #  and then raising a CSRF exception
+  def handle_unverified_request
+    # NOTE: API key is secret, having it invalidates the need for a CSRF token
+    unless is_api?
+      super
+      clear_current_user
+      raise Discourse::CSRF
+    end
+  end
+
   before_filter :inject_preview_style
   before_filter :block_if_maintenance_mode
   before_filter :authorize_mini_profiler
@@ -74,9 +86,9 @@ class ApplicationController < ActionController::Base
 
   def rescue_discourse_actions(message, error)
     if request.format && request.format.json?
-      render status: error, layout: false, text: message
+      render status: error, layout: false, text: (error == 404) ? build_not_found_page(error) : message
     else
-      render_not_found_page(error)
+      render text: build_not_found_page(error, 'no_js')
     end
   end
 
@@ -94,23 +106,15 @@ class ApplicationController < ActionController::Base
 
   # If we are rendering HTML, preload the session data
   def preload_json
-
     # We don't preload JSON on xhr or JSON request
     return if request.xhr?
 
-    if guardian.current_user
-      guardian.current_user.sync_notification_channel_position
+    preload_anonymous_data
+
+    if current_user
+      preload_current_user_data
+      current_user.sync_notification_channel_position
     end
-
-    store_preloaded("site", Site.cached_json(current_user))
-
-    if current_user.present?
-      store_preloaded("currentUser", MultiJson.dump(CurrentUserSerializer.new(current_user, root: false)))
-
-      serializer = ActiveModel::ArraySerializer.new(TopicTrackingState.report([current_user.id]), each_serializer: TopicTrackingStateSerializer)
-      store_preloaded("topicTrackingStates", MultiJson.dump(serializer))
-    end
-    store_preloaded("siteSettings", SiteSetting.client_settings_json)
   end
 
 
@@ -122,7 +126,6 @@ class ApplicationController < ActionController::Base
   def guardian
     @guardian ||= Guardian.new(current_user)
   end
-
 
   def serialize_data(obj, serializer, opts={})
     # If it's an array, apply the serializer as an each_serializer to the elements
@@ -190,6 +193,17 @@ class ApplicationController < ActionController::Base
 
   private
 
+    def preload_anonymous_data
+      store_preloaded("site", Site.cached_json(guardian))
+      store_preloaded("siteSettings", SiteSetting.client_settings_json)
+    end
+
+    def preload_current_user_data
+      store_preloaded("currentUser", MultiJson.dump(CurrentUserSerializer.new(current_user, root: false)))
+      serializer = ActiveModel::ArraySerializer.new(TopicTrackingState.report([current_user.id]), each_serializer: TopicTrackingStateSerializer)
+      store_preloaded("topicTrackingStates", MultiJson.dump(serializer))
+    end
+
     def render_json_error(obj)
       if obj.present?
         render json: MultiJson.dump(errors: obj.errors.full_messages), status: 422
@@ -246,11 +260,9 @@ class ApplicationController < ActionController::Base
     end
 
     def check_xhr
-      unless (controller_name == 'forums' || controller_name == 'user_open_ids')
-        # bypass xhr check on PUT / POST / DELETE provided api key is there, otherwise calling api is annoying
-        return if !request.get? && api_key_valid?
-        raise RenderEmpty.new unless ((request.format && request.format.json?) || request.xhr?)
-      end
+      # bypass xhr check on PUT / POST / DELETE provided api key is there, otherwise calling api is annoying
+      return if !request.get? && api_key_valid?
+      raise RenderEmpty.new unless ((request.format && request.format.json?) || request.xhr?)
     end
 
     def ensure_logged_in
@@ -261,13 +273,13 @@ class ApplicationController < ActionController::Base
       redirect_to :login if SiteSetting.login_required? && !current_user
     end
 
-    def render_not_found_page(status=404)
+    def build_not_found_page(status=404, layout=false)
       @top_viewed = TopicQuery.top_viewed(10)
       @recent = TopicQuery.recent(10)
       @slug =  params[:slug].class == String ? params[:slug] : ''
       @slug =  (params[:id].class == String ? params[:id] : '') if @slug.blank?
       @slug.gsub!('-',' ')
-      render status: status, layout: 'no_js', formats: [:html], template: '/exceptions/not_found'
+      render_to_string status: status, layout: layout, formats: [:html], template: '/exceptions/not_found'
     end
 
   protected

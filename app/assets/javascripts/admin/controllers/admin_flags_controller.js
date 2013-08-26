@@ -19,7 +19,7 @@ Discourse.AdminFlagsController = Ember.ArrayController.extend({
     item.disagreeFlags().then((function() {
       adminFlagsController.removeObject(item);
     }), function() {
-      bootbox.alert(Em.String.i18n("admin.flags.error"));
+      bootbox.alert(I18n.t("admin.flags.error"));
     });
   },
 
@@ -28,7 +28,7 @@ Discourse.AdminFlagsController = Ember.ArrayController.extend({
     item.agreeFlags().then((function() {
       adminFlagsController.removeObject(item);
     }), function() {
-      bootbox.alert(Em.String.i18n("admin.flags.error"));
+      bootbox.alert(I18n.t("admin.flags.error"));
     });
   },
 
@@ -37,7 +37,7 @@ Discourse.AdminFlagsController = Ember.ArrayController.extend({
     item.deferFlags().then((function() {
       adminFlagsController.removeObject(item);
     }), function() {
-      bootbox.alert(Em.String.i18n("admin.flags.error"));
+      bootbox.alert(I18n.t("admin.flags.error"));
     });
   },
 
@@ -52,8 +52,18 @@ Discourse.AdminFlagsController = Ember.ArrayController.extend({
     item.deletePost().then((function() {
       adminFlagsController.removeObject(item);
     }), function() {
-      bootbox.alert(Em.String.i18n("admin.flags.error"));
+      bootbox.alert(I18n.t("admin.flags.error"));
     });
+  },
+
+  /**
+    Deletes a user and all posts and topics created by that user.
+
+    @method deleteSpammer
+    @param {Discourse.FlaggedPost} item The post to delete
+  **/
+  deleteSpammer: function(item) {
+    item.get('user').deleteAsSpammer(function() { window.location.reload(); });
   },
 
   /**
@@ -68,6 +78,16 @@ Discourse.AdminFlagsController = Ember.ArrayController.extend({
 
     @property adminActiveFlagsView
   **/
-  adminActiveFlagsView: Em.computed.equal('query', 'active')
+  adminActiveFlagsView: Em.computed.equal('query', 'active'),
+
+  loadMore: function(){
+    var flags = this.get('model');
+    return Discourse.FlaggedPost.findAll(this.get('query'),flags.length+1).then(function(data){
+      if(data.length===0){
+        flags.set('allLoaded',true);
+      }
+      flags.addObjects(data);
+    });
+  }
 
 });

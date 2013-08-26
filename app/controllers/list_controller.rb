@@ -1,6 +1,6 @@
 class ListController < ApplicationController
 
-  before_filter :ensure_logged_in, except: [:latest, :hot, :category, :category_feed, :latest_feed, :hot_feed]
+  before_filter :ensure_logged_in, except: [:latest, :hot, :category, :category_feed, :latest_feed, :hot_feed, :topics_by]
   before_filter :set_category, only: [:category, :category_feed]
   skip_before_filter :check_xhr
 
@@ -8,7 +8,8 @@ class ListController < ApplicationController
   [:latest, :hot, :favorited, :read, :posted, :unread, :new].each do |filter|
     define_method(filter) do
       list_opts = build_topic_list_options
-      list = TopicQuery.new(current_user, list_opts).public_send("list_#{filter}")
+      user = list_target_user
+      list = TopicQuery.new(user, list_opts).public_send("list_#{filter}")
       list.more_topics_url = url_for(self.public_send "#{filter}_path".to_sym, list_opts.merge(format: 'json', page: next_page))
 
       respond(list)
@@ -28,6 +29,30 @@ class ListController < ApplicationController
     end
   end
 
+  def topics_by
+    list_opts = build_topic_list_options
+    list = TopicQuery.new(current_user, list_opts).list_topics_by(fetch_user_from_params)
+    list.more_topics_url = url_for(topics_by_path(list_opts.merge(format: 'json', page: next_page)))
+
+    respond(list)
+  end
+
+  def private_messages
+    list_opts = build_topic_list_options
+    list = TopicQuery.new(current_user, list_opts).list_private_messages(fetch_user_from_params)
+    list.more_topics_url = url_for(topics_private_messages_path(list_opts.merge(format: 'json', page: next_page)))
+
+    respond(list)
+  end
+
+  def private_messages_sent
+    list_opts = build_topic_list_options
+    list = TopicQuery.new(current_user, list_opts).list_private_messages_sent(fetch_user_from_params)
+    list.more_topics_url = url_for(topics_private_messages_sent_path(list_opts.merge(format: 'json', page: next_page)))
+
+    respond(list)
+  end
+
   def category
     query = TopicQuery.new(current_user, page: params[:page])
 
@@ -35,6 +60,10 @@ class ListController < ApplicationController
     if request_is_for_uncategorized?
       list = query.list_uncategorized
     else
+      if !@category
+        raise Discourse::NotFound
+        return
+      end
       guardian.ensure_can_see!(@category)
       list = query.list_category(@category)
     end
@@ -95,8 +124,8 @@ class ListController < ApplicationController
   private
 
   def set_category
-    category_slug = params.fetch(:category)
-    @category = Category.where("slug = ? or id = ?", category_slug, category_slug.to_i).includes(:featured_users).first
+    slug = params.fetch(:category)
+    @category = Category.where("slug = ?", slug).includes(:featured_users).first || Category.where("id = ?", slug.to_i).includes(:featured_users).first
   end
 
   def request_is_for_uncategorized?
@@ -116,5 +145,13 @@ class ListController < ApplicationController
       topic_ids: param_to_integer_list(:topic_ids),
       exclude_category: (params[:exclude_category] || menu_item.try(:filter))
     }
+  end
+
+  def list_target_user
+    if params[:user_id] && guardian.is_staff?
+      User.find(params[:user_id].to_i)
+    else
+      current_user
+    end
   end
 end

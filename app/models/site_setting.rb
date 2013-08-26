@@ -41,9 +41,11 @@ class SiteSetting < ActiveRecord::Base
   client_setting(:min_search_term_length, 3)
   client_setting(:flush_timings_secs, 5)
   client_setting(:suppress_reply_directly_below, true)
+  client_setting(:suppress_reply_directly_above, true)
   client_setting(:email_domains_blacklist, 'mailinator.com')
   client_setting(:email_domains_whitelist)
   client_setting(:version_checks, true)
+  setting(:new_version_emails, true)
   client_setting(:min_title_similar_length, 10)
   client_setting(:min_body_similar_length, 15)
   # cf. https://github.com/discourse/discourse/pull/462#issuecomment-14991562
@@ -52,7 +54,8 @@ class SiteSetting < ActiveRecord::Base
   # auto-replace rules for title
   setting(:title_prettify, true)
 
-  client_setting(:max_upload_size_kb, 2048)
+  client_setting(:max_image_size_kb, 2048)
+  client_setting(:max_attachment_size_kb, 1024)
   client_setting(:authorized_extensions, '.jpg|.jpeg|.png|.gif')
 
   # settings only available server side
@@ -64,6 +67,7 @@ class SiteSetting < ActiveRecord::Base
 
   setting(:num_flags_to_block_new_user, 3)
   setting(:num_users_to_block_new_user, 3)
+  setting(:notify_mods_when_user_blocked, true)
 
   # used mainly for dev, force hostname for Discourse.base_url
   # You would usually use multisite for this
@@ -74,7 +78,8 @@ class SiteSetting < ActiveRecord::Base
   setting(:queue_jobs, !Rails.env.test?)
   setting(:crawl_images, !Rails.env.test?)
   setting(:max_image_width, 690)
-  setting(:create_thumbnails, false)
+  setting(:max_image_height, 500)
+  setting(:create_thumbnails, true)
   client_setting(:category_featured_topics, 6)
   setting(:topics_per_page, 30)
   client_setting(:posts_per_page, 20)
@@ -85,6 +90,8 @@ class SiteSetting < ActiveRecord::Base
   setting(:apple_touch_icon_url, '/assets/default-apple-touch-icon.png')
 
   setting(:ninja_edit_window, 5.minutes.to_i)
+  client_setting(:edit_history_visible_to_public, true)
+  client_setting(:delete_removed_posts_after, 24) # hours
   setting(:post_undo_action_window_mins, 10)
   setting(:system_username, '')
   setting(:max_mentions_per_post, 10)
@@ -106,9 +113,10 @@ class SiteSetting < ActiveRecord::Base
   setting(:max_flags_per_day, 20)
   setting(:max_edits_per_day, 30)
   setting(:max_favorites_per_day, 20)
-  setting(:auto_link_images_wider_than, 50)
 
   setting(:email_time_window_mins, 10)
+  setting(:email_posts_context, 5)
+  setting(:default_digest_email_frequency, '7', enum: 'DigestEmailSiteSetting')
 
   # How many characters we can import into a onebox
   setting(:onebox_max_chars, 5000)
@@ -130,6 +138,7 @@ class SiteSetting < ActiveRecord::Base
 
   # we need to think of a way to force users to enter certain settings, this is a minimal config thing
   setting(:notification_email, 'info@discourse.org')
+  setting(:email_custom_headers, 'Auto-Submitted: auto-generated')
 
   setting(:allow_index_in_robots_txt, true)
 
@@ -149,6 +158,9 @@ class SiteSetting < ActiveRecord::Base
   setting(:twitter_consumer_key, '')
   setting(:twitter_consumer_secret, '')
 
+  # note we set this (and twitter to true for 2 reasons)
+  # 1. its an upgrade nightmare to change it to false, lots of people will complain
+  # 2. it advertises the feature (even though it is broken)
   client_setting(:enable_facebook_logins, true)
   setting(:facebook_app_id, '')
   setting(:facebook_app_secret, '')
@@ -171,6 +183,8 @@ class SiteSetting < ActiveRecord::Base
   setting(:s3_secret_access_key, '')
   setting(:s3_region, '', enum: 'S3RegionSiteSetting')
   setting(:s3_upload_bucket, '')
+
+  setting(:enable_flash_video_onebox, false)
 
   setting(:default_trust_level, 0)
   setting(:default_invitee_trust_level, 1)
@@ -208,6 +222,7 @@ class SiteSetting < ActiveRecord::Base
 
   setting(:newuser_max_links, 2)
   client_setting(:newuser_max_images, 0)
+  client_setting(:newuser_max_attachments, 0)
 
   setting(:newuser_spam_host_threshold, 3)
 
@@ -226,6 +241,16 @@ class SiteSetting < ActiveRecord::Base
   client_setting(:topic_views_heat_high,   5000)
 
   setting(:minimum_topics_similar, 50)
+
+  client_setting(:relative_date_duration, 30)
+
+  client_setting(:delete_user_max_age, 14)
+  setting(:delete_all_posts_max, 10)
+
+  setting(:username_change_period, 3) # days
+
+  client_setting(:allow_uploaded_avatars, true)
+  client_setting(:allow_animated_avatars, false)
 
   def self.generate_api_key!
     self.api_key = SecureRandom.hex(32)
@@ -264,9 +289,36 @@ class SiteSetting < ActiveRecord::Base
     top_menu_items[0].name
   end
 
+  def self.anonymous_menu_items
+    @anonymous_menu_items ||= Set.new ['latest', 'hot', 'categories', 'category']
+  end
+
   def self.anonymous_homepage
-    list = ['latest', 'hot', 'categories', 'category']
-    top_menu_items.map { |item| item.name }.select{ |item| list.include?(item) }.first
+    top_menu_items.map { |item| item.name }
+                  .select { |item| anonymous_menu_items.include?(item) }
+                  .first
+  end
+
+  def self.authorized_uploads
+    authorized_extensions.tr(" ", "")
+                         .split("|")
+                         .map { |extension| (extension.start_with?(".") ? extension[1..-1] : extension).gsub(".", "\.") }
+  end
+
+  def self.authorized_upload?(file)
+    authorized_uploads.count > 0 && file.original_filename =~ /\.(#{authorized_uploads.join("|")})$/i
+  end
+
+  def self.images
+    @images ||= Set.new ["jpg", "jpeg", "png", "gif", "tif", "tiff", "bmp"]
+  end
+
+  def self.authorized_images
+    authorized_uploads.select { |extension| images.include?(extension) }
+  end
+
+  def self.authorized_image?(file)
+    authorized_images.count > 0 && file.original_filename =~ /\.(#{authorized_images.join("|")})$/i
   end
 
 end
