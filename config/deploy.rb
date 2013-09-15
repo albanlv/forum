@@ -70,11 +70,11 @@ end
 task start: :vars do
   queue %[cd "#{deploy_to}/current" && bundle exec unicorn -D -c "#{deploy_to}/current/config/unicorn.rb" -E production]
   queue %[cd "#{deploy_to}/current" && bundle exec sidekiq -d -L "#{deploy_to}/current/log/sidekiq.log" -e production -C "#{deploy_to}/current/config/initializer/sidekig.rb" -P "#{deploy_to}/current/tmp/sidekiq.pid"]
-  queue %[cd "#{deploy_to}/current" && RAILS_ENV=production bundle exec clockworkd -c config/clock.rb --pid-dir="#{deploy_to}/current/tmp" start]
+#  queue %[cd "#{deploy_to}/current" && RAILS_ENV=production bundle exec clockworkd -c config/clock.rb --pid-dir="#{deploy_to}/current/tmp" start]
 end
 
 task stop: :vars do
-  queue %[cd "#{deploy_to}/current" && RAILS_ENV=production bundle exec clockworkd -c config/clock.rb --pid-dir="#{deploy_to}/current/tmp" stop]
+#  queue %[cd "#{deploy_to}/current" && RAILS_ENV=production bundle exec clockworkd -c config/clock.rb --pid-dir="#{deploy_to}/current/tmp" stop]
   queue %[cd "#{deploy_to}/current/tmp" && bundle exec sidekiqctl stop "#{deploy_to}/current/tmp/sidekiq.pid"]
   queue %[kill -QUIT `cat "#{deploy_to}/tmp/unicorn.pid"`]
 end

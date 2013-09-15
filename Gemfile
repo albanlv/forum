@@ -103,8 +103,6 @@ gem 'oj'
 gem 'pg'
 gem 'rake'
 
-gem 'clockwork'
-
 gem 'rest-client'
 gem 'rinku'
 gem 'sanitize'
