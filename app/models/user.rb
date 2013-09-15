@@ -13,35 +13,36 @@ class User < ActiveRecord::Base
   include Roleable
 
   has_many :posts
-  has_many :notifications
-  has_many :topic_users
+  has_many :notifications, dependent: :destroy
+  has_many :topic_users, dependent: :destroy
   has_many :topics
   has_many :user_open_ids, dependent: :destroy
-  has_many :user_actions
-  has_many :post_actions
-  has_many :email_logs
+  has_many :user_actions, dependent: :destroy
+  has_many :post_actions, dependent: :destroy
+  has_many :email_logs, dependent: :destroy
   has_many :post_timings
-  has_many :topic_allowed_users
+  has_many :topic_allowed_users, dependent: :destroy
   has_many :topics_allowed, through: :topic_allowed_users, source: :topic
-  has_many :email_tokens
+  has_many :email_tokens, dependent: :destroy
   has_many :views
-  has_many :user_visits
-  has_many :invites
-  has_many :topic_links
-  has_many :uploads
+  has_many :user_visits, dependent: :destroy
+  has_many :invites, dependent: :destroy
+  has_many :topic_links, dependent: :destroy
+  has_many :uploads, dependent: :destroy
 
   has_one :facebook_user_info, dependent: :destroy
   has_one :twitter_user_info, dependent: :destroy
   has_one :github_user_info, dependent: :destroy
   has_one :cas_user_info, dependent: :destroy
   has_one :oauth2_user_info, dependent: :destroy
+  has_one :user_stat, dependent: :destroy
   belongs_to :approved_by, class_name: 'User'
 
-  has_many :group_users
+  has_many :group_users, dependent: :destroy
   has_many :groups, through: :group_users
   has_many :secure_categories, through: :groups, source: :categories
 
-  has_one :user_search_data
+  has_one :user_search_data, dependent: :destroy
 
   belongs_to :uploaded_avatar, class_name: 'Upload', dependent: :destroy
 
@@ -60,6 +61,13 @@ class User < ActiveRecord::Base
   after_save :update_tracked_topics
 
   after_create :create_email_token
+  after_create :create_user_stat
+
+  before_destroy do
+    # These tables don't have primary keys, so destroying them with activerecord is tricky:
+    PostTiming.delete_all(user_id: self.id)
+    View.delete_all(user_id: self.id)
+  end
 
   # Whether we need to be sending a system message after creation
   attr_accessor :send_welcome_message
@@ -70,6 +78,8 @@ class User < ActiveRecord::Base
   scope :blocked, -> { where(blocked: true) } # no index
   scope :banned, -> { where('banned_till IS NOT NULL AND banned_till > ?', Time.zone.now) } # no index
   scope :not_banned, -> { where('banned_till IS NULL') }
+  # excluding fake users like the community user
+  scope :real, -> { where('id > 0') }
 
   module NewTopicDuration
     ALWAYS = -1
@@ -93,23 +103,6 @@ class User < ActiveRecord::Base
     user.email = params[:email]
     user.password = params[:password]
     user.username = params[:username]
-    user
-  end
-
-  def self.create_for_email(email, opts={})
-    username = UserNameSuggester.suggest(email)
-
-    discourse_hub_nickname_operation do
-      match, available, suggestion = DiscourseHub.nickname_match?(username, email)
-      username = suggestion unless match || available
-    end
-
-    user = User.new(email: email, username: username, name: username)
-    user.trust_level = opts[:trust_level] if opts[:trust_level].present?
-    user.save!
-
-    discourse_hub_nickname_operation { DiscourseHub.register_nickname(username, email) }
-
     user
   end
 
@@ -154,7 +147,7 @@ class User < ActiveRecord::Base
     self.username = new_username
 
     if current_username.downcase != new_username.downcase && valid?
-      User.discourse_hub_nickname_operation { DiscourseHub.change_nickname(current_username, new_username) }
+      DiscourseHub.nickname_operation { DiscourseHub.change_nickname(current_username, new_username) }
     end
 
     save
@@ -167,6 +160,9 @@ class User < ActiveRecord::Base
     key
   end
 
+  def created_topic_count
+    topics.count
+  end
 
   # tricky, we need our bus to be subscribed from the right spot
   def sync_notification_channel_position
@@ -309,14 +305,15 @@ class User < ActiveRecord::Base
     template.gsub("{size}", "45")
   end
 
+  # the avatars might take a while to generate
+  # so return the url of the original image in the meantime
+  def uploaded_avatar_path
+    return unless SiteSetting.allow_uploaded_avatars? && use_uploaded_avatar
+    uploaded_avatar_template.present? ? uploaded_avatar_template : uploaded_avatar.try(:url)
+  end
+
   def avatar_template
-    if SiteSetting.allow_uploaded_avatars? && use_uploaded_avatar
-      # the avatars might take a while to generate
-      # so return the url of the original image in the meantime
-      uploaded_avatar_template.present? ? uploaded_avatar_template : uploaded_avatar.try(:url)
-    else
-      User.gravatar_template(email)
-    end
+    uploaded_avatar_path || User.gravatar_template(email)
   end
 
   # Updates the denormalized view counts for all users
@@ -486,10 +483,6 @@ class User < ActiveRecord::Base
     where('created_at > ?', sinceDaysAgo.days.ago).group('date(created_at)').order('date(created_at)').count
   end
 
-  def self.counts_by_trust_level
-    group('trust_level').count
-  end
-
   def update_topic_reply_count
     self.topic_reply_count =
         Topic
@@ -504,13 +497,14 @@ class User < ActiveRecord::Base
   end
 
   def secure_category_ids
-    cats = self.staff? ? Category.select(:id).where(read_restricted: true) : secure_categories.select('categories.id').references(:categories)
-    cats.map { |c| c.id }.sort
+    cats = self.staff? ? Category.where(read_restricted: true) : secure_categories.references(:categories)
+    cats.pluck('categories.id').sort
   end
 
   def topic_create_allowed_category_ids
     Category.topic_create_allowed(self.id).select(:id)
   end
+
 
   # Flag all posts from a user as spam
   def flag_linked_posts_as_spam
@@ -548,6 +542,12 @@ class User < ActiveRecord::Base
       TopicUser.where(where_conditions).update_all(["notification_level = CASE WHEN total_msecs_viewed < ? THEN ? ELSE ? END",
                             auto_track_topics_after_msecs, TopicUser.notification_levels[:regular], TopicUser.notification_levels[:tracking]])
     end
+  end
+
+  def create_user_stat
+    stat = UserStat.new
+    stat.user_id = self.id
+    stat.save!
   end
 
   def create_email_token
@@ -612,17 +612,6 @@ class User < ActiveRecord::Base
 
   private
 
-  def self.discourse_hub_nickname_operation
-    if SiteSetting.call_discourse_hub?
-      begin
-        yield
-      rescue DiscourseHub::NicknameUnavailable
-        false
-      rescue => e
-        Rails.logger.error e.message + "\n" + e.backtrace.join("\n")
-      end
-    end
-  end
 end
 
 # == Schema Information
@@ -647,7 +636,7 @@ end
 #  website                       :string(255)
 #  admin                         :boolean          default(FALSE), not null
 #  last_emailed_at               :datetime
-#  email_digests                 :boolean          default(TRUE), not null
+#  email_digests                 :boolean          not null
 #  trust_level                   :integer          not null
 #  bio_cooked                    :text
 #  email_private_messages        :boolean          default(TRUE)
@@ -657,7 +646,7 @@ end
 #  approved_at                   :datetime
 #  topics_entered                :integer          default(0), not null
 #  posts_read_count              :integer          default(0), not null
-#  digest_after_days             :integer          default(7), not null
+#  digest_after_days             :integer
 #  previous_visit_at             :datetime
 #  banned_at                     :datetime
 #  banned_till                   :datetime
@@ -690,3 +679,4 @@ end
 #  index_users_on_username        (username) UNIQUE
 #  index_users_on_username_lower  (username_lower) UNIQUE
 #
+

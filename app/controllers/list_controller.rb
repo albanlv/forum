@@ -11,6 +11,7 @@ class ListController < ApplicationController
       user = list_target_user
       list = TopicQuery.new(user, list_opts).public_send("list_#{filter}")
       list.more_topics_url = url_for(self.public_send "#{filter}_path".to_sym, list_opts.merge(format: 'json', page: next_page))
+      @description = SiteSetting.site_description if [:latest, :hot].include?(filter)
 
       respond(list)
     end
@@ -53,6 +54,14 @@ class ListController < ApplicationController
     respond(list)
   end
 
+  def private_messages_unread
+    list_opts = build_topic_list_options
+    list = TopicQuery.new(current_user, list_opts).list_private_messages_unread(fetch_user_from_params)
+    list.more_topics_url = url_for(topics_private_messages_unread_path(list_opts.merge(format: 'json', page: next_page)))
+
+    respond(list)
+  end
+
   def category
     query = TopicQuery.new(current_user, page: params[:page])
 
@@ -66,6 +75,7 @@ class ListController < ApplicationController
       end
       guardian.ensure_can_see!(@category)
       list = query.list_category(@category)
+      @description = @category.description
     end
 
     list.more_topics_url = url_for(category_list_path(params[:category], page: next_page, format: "json"))

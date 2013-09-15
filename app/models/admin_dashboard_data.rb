@@ -36,8 +36,9 @@ class AdminDashboardData
       contact_email_check,
       send_consumer_email_check,
       title_check,
+      site_description_check,
       access_password_removal,
-      system_username_check,
+      site_contact_username_check,
       notification_email_check ].compact
   end
 
@@ -144,12 +145,16 @@ class AdminDashboardData
     I18n.t('dashboard.title_nag') if SiteSetting.title == SiteSetting.defaults[:title]
   end
 
+  def site_description_check
+    return I18n.t('dashboard.site_description_missing') if !SiteSetting.site_description.present?
+  end
+
   def send_consumer_email_check
     I18n.t('dashboard.consumer_email_warning') if Rails.env == 'production' and ActionMailer::Base.smtp_settings[:address] =~ /gmail\.com|live\.com|yahoo\.com/
   end
 
-  def system_username_check
-    I18n.t('dashboard.system_username_warning') if SiteSetting.system_username.blank?
+  def site_contact_username_check
+    I18n.t('dashboard.site_contact_username_warning') if SiteSetting.site_contact_username.blank?
   end
 
   def notification_email_check

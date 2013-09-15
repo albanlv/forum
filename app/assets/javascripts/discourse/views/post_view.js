@@ -29,17 +29,20 @@ Discourse.PostView = Discourse.GroupedView.extend({
 
   mouseUp: function(e) {
     if (this.get('controller.multiSelect') && (e.metaKey || e.ctrlKey)) {
-      this.get('controller').selectPost(this.get('post'));
+      this.get('controller').toggledSelectedPost(this.get('post'));
     }
   },
 
   selected: function() {
-    var selectedPosts = this.get('controller.selectedPosts');
-    if (!selectedPosts) return false;
-    return selectedPosts.contains(this.get('post'));
+    return this.get('controller').postSelected(this.get('post'));
   }.property('controller.selectedPostsCount'),
 
-  selectText: function() {
+  canSelectReplies: function() {
+    if (this.get('post.reply_count') === 0) { return false; }
+    return !this.get('selected');
+  }.property('post.reply_count', 'selected'),
+
+  selectPostText: function() {
     return this.get('selected') ? I18n.t('topic.multi_select.selected', { count: this.get('controller.selectedPostsCount') }) : I18n.t('topic.multi_select.select');
   }.property('selected', 'controller.selectedPostsCount'),
 
@@ -128,6 +131,39 @@ Discourse.PostView = Discourse.GroupedView.extend({
             }
           });
         }
+      });
+    }
+  },
+
+  /**
+    Toggle the replies this post is a reply to
+
+    @method showReplyHistory
+  **/
+  toggleReplyHistory: function(post) {
+
+    var replyHistory = post.get('replyHistory'),
+        topicController = this.get('controller'),
+        origScrollTop = $(window).scrollTop();
+
+
+    if (replyHistory.length > 0) {
+      var origHeight = this.$('.embedded-posts.top').height();
+
+      replyHistory.clear();
+      Em.run.next(function() {
+        $(window).scrollTop(origScrollTop - origHeight);
+      });
+    } else {
+      post.set('loadingReplyHistory', true);
+
+      var self = this;
+      topicController.get('postStream').findReplyHistory(post).then(function () {
+        post.set('loadingReplyHistory', false);
+
+        Em.run.next(function() {
+          $(window).scrollTop(origScrollTop + self.$('.embedded-posts.top').height());
+        });
       });
     }
   },

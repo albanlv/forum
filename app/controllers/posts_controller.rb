@@ -150,16 +150,16 @@ class PostsController < ApplicationController
 
     params.require(:post_ids)
 
-    posts = Post.where(id: params[:post_ids])
+    posts = Post.where(id: post_ids_including_replies)
     raise Discourse::InvalidParameters.new(:post_ids) if posts.blank?
 
     # Make sure we can delete the posts
+
     posts.each {|p| guardian.ensure_can_delete!(p) }
 
     Post.transaction do
       topic_id = posts.first.topic_id
-      posts.each {|p| p.destroy }
-      Topic.reset_highest(topic_id)
+      posts.each {|p| PostDestroyer.new(current_user, p).destroy }
     end
 
     render nothing: true
@@ -175,11 +175,6 @@ class PostsController < ApplicationController
   def replies
     post = find_post_from_params
     render_serialized(post.replies, PostSerializer)
-  end
-
-  # Returns the "you're creating a post education"
-  def education_text
-
   end
 
   def bookmark

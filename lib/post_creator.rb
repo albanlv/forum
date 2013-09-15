@@ -69,12 +69,17 @@ class PostCreator
       update_topic_stats
       update_user_counts
       publish
+      ensure_in_allowed_users if guardian.is_staff?
       @post.advance_draft_sequence
       @post.save_reply_relationships
     end
 
     if @spam
-      GroupMessage.create( Group[:moderators].name, :spam_post_blocked, {user: @user, limit_once_per: 24.hours} )
+      GroupMessage.create( Group[:moderators].name,
+                           :spam_post_blocked,
+                           { user: @user,
+                             limit_once_per: 24.hours,
+                             message_params: {domains: @post.linked_hosts.keys.join(', ')} } )
     end
 
     enqueue_jobs
@@ -103,6 +108,14 @@ class PostCreator
 
 
   protected
+
+  def ensure_in_allowed_users
+    return unless @topic.private_message?
+
+    unless @topic.topic_allowed_users.where(user_id: @user.id).exists?
+      @topic.topic_allowed_users.create!(user_id: @user.id)
+    end
+  end
 
   def secure_group_ids(topic)
     @secure_group_ids ||= if topic.category && topic.category.read_restricted?
@@ -211,9 +224,7 @@ class PostCreator
   end
 
   def store_unique_post_key
-    if SiteSetting.unique_posts_mins > 0
-      $redis.setex(@post.unique_post_key, SiteSetting.unique_posts_mins.minutes.to_i, "1")
-    end
+    @post.store_unique_post_key
   end
 
   def consider_clearing_flags

@@ -8,6 +8,7 @@ class SiteSetting < ActiveRecord::Base
 
   # settings available in javascript under Discourse.SiteSettings
   client_setting(:title, "Discourse")
+  setting(:site_description, '')
   client_setting(:logo_url, '/assets/d-logo-sketch.png')
   client_setting(:logo_small_url, '/assets/d-logo-sketch-small.png')
   setting(:contact_email, '')
@@ -67,7 +68,7 @@ class SiteSetting < ActiveRecord::Base
 
   setting(:num_flags_to_block_new_user, 3)
   setting(:num_users_to_block_new_user, 3)
-  setting(:notify_mods_when_user_blocked, true)
+  setting(:notify_mods_when_user_blocked, false)
 
   # used mainly for dev, force hostname for Discourse.base_url
   # You would usually use multisite for this
@@ -93,7 +94,7 @@ class SiteSetting < ActiveRecord::Base
   client_setting(:edit_history_visible_to_public, true)
   client_setting(:delete_removed_posts_after, 24) # hours
   setting(:post_undo_action_window_mins, 10)
-  setting(:system_username, '')
+  setting(:site_contact_username, '')
   setting(:max_mentions_per_post, 10)
   setting(:newuser_max_mentions_per_post, 2)
 
@@ -205,6 +206,8 @@ class SiteSetting < ActiveRecord::Base
   setting(:regular_requires_likes_given, 1)
   setting(:regular_requires_topic_reply_count, 3)
 
+  setting(:min_trust_to_create_topic, 0, enum: 'MinTrustToCreateTopicSetting')
+
   # Reply by Email Settings
   setting(:reply_by_email_enabled, false)
   setting(:reply_by_email_address, '')
@@ -251,6 +254,11 @@ class SiteSetting < ActiveRecord::Base
 
   client_setting(:allow_uploaded_avatars, true)
   client_setting(:allow_animated_avatars, false)
+
+  setting(:detect_custom_avatars, false)
+  setting(:max_daily_gravatar_crawls, 500)
+
+  setting(:sequential_replies_threshold, 2)
 
   def self.generate_api_key!
     self.api_key = SecureRandom.hex(32)
