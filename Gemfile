@@ -47,7 +47,7 @@ else
   # we are using a custom sprockets repo to work around: https://github.com/rails/rails/issues/8099#issuecomment-16137638
   # REVIEW EVERY RELEASE
   gem 'sprockets', git: 'https://github.com/SamSaffron/sprockets.git', branch: 'rails-compat'
-  gem 'redis-rails'
+  gem 'redis-rails', "3.2,2"
   gem 'activerecord-postgres-hstore'
   gem 'active_attr'
 end
