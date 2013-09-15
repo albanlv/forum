@@ -359,21 +359,21 @@ GEM
       json (~> 1.4)
     redcarpet (3.0.0)
     redis (3.0.4)
-    redis-actionpack (3.2.3)
-      actionpack (~> 3.2.3)
-      redis-rack (~> 1.4.0)
-      redis-store (~> 1.1.0)
-    redis-activesupport (3.2.3)
-      activesupport (~> 3.2.3)
+    redis-actionpack (3.2.4)
+      actionpack (~> 3.2.0)
+      redis-rack (~> 1.4.4)
+      redis-store (~> 1.1.4)
+    redis-activesupport (3.2.4)
+      activesupport (~> 3.2.0)
       redis-store (~> 1.1.0)
     redis-namespace (1.3.1)
       redis (~> 3.0.0)
-    redis-rack (1.4.2)
-      rack (~> 1.4.1)
-      redis-store (~> 1.1.0)
-    redis-rails (3.2.3)
-      redis-actionpack (~> 3.2.3)
-      redis-activesupport (~> 3.2.3)
+    redis-rack (1.4.4)
+      rack (~> 1.4.0)
+      redis-store (~> 1.1.4)
+    redis-rails (3.2.2)
+      redis-actionpack (~> 3.2.2)
+      redis-activesupport (~> 3.2.2)
       redis-store (~> 1.1.0)
     redis-store (1.1.4)
       redis (>= 2.2)
@@ -536,7 +536,7 @@ DEPENDENCIES
   redcarpet
   redis
   redis-rack-cache!
-  redis-rails
+  redis-rails (= 3.2.2)
   rest-client
   rinku
   rspec-given
