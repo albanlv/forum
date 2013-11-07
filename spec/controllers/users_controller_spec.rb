@@ -824,40 +824,83 @@ describe UsersController do
 
   end
 
-  describe '.update' do
-
-    context 'not logged in' do
-      it 'raises an error when not logged in' do
+  describe '#update' do
+    context 'with guest' do
+      it 'raises an error' do
         expect do
-          xhr :put, :update, username: 'somename'
+          xhr :put, :update, username: 'guest'
         end.to raise_error(Discourse::NotLoggedIn)
       end
     end
 
-    context 'logged in' do
-      let!(:user) { log_in }
+    context 'with authenticated user' do
+      context 'with permission to update' do
+        it 'allows the update' do
+          user = Fabricate(:user, name: 'Billy Bob')
+          log_in_user(user)
 
-      context 'without a token' do
-        it 'should ensure you can update the user' do
-          Guardian.any_instance.expects(:can_edit?).with(user).returns(false)
-          put :update, username: user.username
-          response.should be_forbidden
+          put :update, username: user.username, name: 'Jim Tom'
+
+          expect(response).to be_success
+          expect(user.reload.name).to eq 'Jim Tom'
         end
 
-        context 'as a user who can edit the user' do
+        it 'returns user JSON' do
+          user = log_in
 
-          before do
-            put :update, username: user.username, bio_raw: 'brand new bio'
-            user.reload
-          end
+          put :update, username: user.username
 
-          it 'updates the user' do
-            user.bio_raw.should == 'brand new bio'
-          end
+          json = JSON.parse(response.body)
+          expect(json['user']['id']).to eq user.id
+        end
 
-          it 'returns json success' do
-            response.should be_success
+        context 'when website includes http' do
+          it 'does not add http before updating' do
+            user = log_in
+
+            put :update, username: user.username, website: 'http://example.com'
+
+            expect(user.reload.website).to eq 'http://example.com'
           end
+        end
+
+        context 'when website does not include http' do
+          it 'adds http before updating' do
+            user = log_in
+
+            put :update, username: user.username, website: 'example.com'
+
+            expect(user.reload.website).to eq 'http://example.com'
+          end
+        end
+      end
+
+      context 'without permission to update any attributes' do
+        it 'does not allow the update' do
+          user = Fabricate(:user, name: 'Billy Bob')
+          log_in_user(user)
+          guardian = Guardian.new(user)
+          guardian.stubs(:ensure_can_edit!).with(user).raises(Discourse::InvalidAccess.new)
+          Guardian.stubs(new: guardian).with(user)
+
+          put :update, username: user.username, name: 'Jim Tom'
+
+          expect(response).to be_forbidden
+          expect(user.reload.name).not_to eq 'Jim Tom'
+        end
+      end
+
+      context 'without permission to update title' do
+        it 'does not allow the user to update their title' do
+          user = Fabricate(:user, title: 'Emperor')
+          log_in_user(user)
+          guardian = Guardian.new(user)
+          guardian.stubs(can_grant_title?: false).with(user)
+          Guardian.stubs(new: guardian).with(user)
+
+          put :update, username: user.username, title: 'Minion'
+
+          expect(user.reload.title).not_to eq 'Minion'
         end
       end
     end
@@ -891,6 +934,30 @@ describe UsersController do
       response.should be_success
       json = JSON.parse(response.body)
       json["users"].map { |u| u["username"] }.should include(user.username)
+    end
+
+    context "when `enable_names` is true" do
+      before do
+        SiteSetting.stubs(:enable_names?).returns(true)
+      end
+
+      it "returns names" do
+        xhr :post, :search_users, term: user.name
+        json = JSON.parse(response.body)
+        json["users"].map { |u| u["name"] }.should include(user.name)
+      end
+    end
+
+    context "when `enable_names` is false" do
+      before do
+        SiteSetting.stubs(:enable_names?).returns(false)
+      end
+
+      it "returns names" do
+        xhr :post, :search_users, term: user.name
+        json = JSON.parse(response.body)
+        json["users"].map { |u| u["name"] }.should_not include(user.name)
+      end
     end
 
   end
@@ -954,36 +1021,95 @@ describe UsersController do
         })
       end
 
-      it 'raises an error when you don\'t have permission to upload an avatar' do
-        Guardian.any_instance.expects(:can_edit?).with(user).returns(false)
-        xhr :post, :upload_avatar, username: user.username
-        response.should be_forbidden
+      describe "with uploaded file" do
+
+        it 'raises an error when you don\'t have permission to upload an avatar' do
+          Guardian.any_instance.expects(:can_edit?).with(user).returns(false)
+          xhr :post, :upload_avatar, username: user.username
+          response.should be_forbidden
+        end
+
+        it 'rejects large images' do
+          SiteSetting.stubs(:max_image_size_kb).returns(1)
+          xhr :post, :upload_avatar, username: user.username, file: avatar
+          response.status.should eq 413
+        end
+
+        it 'rejects unauthorized images' do
+          SiteSetting.stubs(:authorized_image?).returns(false)
+          xhr :post, :upload_avatar, username: user.username, file: avatar
+          response.status.should eq 422
+        end
+
+        it 'is successful' do
+          upload = Fabricate(:upload)
+          Upload.expects(:create_for).returns(upload)
+          # enqueues the avatar generator job
+          Jobs.expects(:enqueue).with(:generate_avatars, { user_id: user.id, upload_id: upload.id })
+          xhr :post, :upload_avatar, username: user.username, file: avatar
+          user.reload
+          # erase the previous template
+          user.uploaded_avatar_template.should == nil
+          # link to the right upload
+          user.uploaded_avatar.id.should == upload.id
+          # automatically set "use_uploaded_avatar"
+          user.use_uploaded_avatar.should == true
+          # returns the url, width and height of the uploaded image
+          json = JSON.parse(response.body)
+          json['url'].should == "/uploads/default/1/1234567890123456.jpg"
+          json['width'].should == 100
+          json['height'].should == 200
+        end
       end
 
-      it 'rejects large images' do
-        SiteSetting.stubs(:max_image_size_kb).returns(1)
-        xhr :post, :upload_avatar, username: user.username, file: avatar
-        response.status.should eq 413
-      end
+      describe "with url" do
+        let(:avatar_url) { "http://cdn.discourse.org/assets/logo.png" }
 
-      it 'is successful' do
-        upload = Fabricate(:upload)
-        Upload.expects(:create_for).returns(upload)
-        # enqueues the avatar generator job
-        Jobs.expects(:enqueue).with(:generate_avatars, { user_id: user.id, upload_id: upload.id })
-        xhr :post, :upload_avatar, username: user.username, file: avatar
-        user.reload
-        # erase the previous template
-        user.uploaded_avatar_template.should == nil
-        # link to the right upload
-        user.uploaded_avatar.id.should == upload.id
-        # automatically set "use_uploaded_avatar"
-        user.use_uploaded_avatar.should == true
-        # returns the url, width and height of the uploaded image
-        json = JSON.parse(response.body)
-        json['url'].should == "/uploads/default/1/1234567890123456.jpg"
-        json['width'].should == 100
-        json['height'].should == 200
+        before :each do
+          UsersController.any_instance.stubs(:is_api?).returns(true)
+        end
+
+        describe "correct urls" do
+          before :each do
+            UriAdapter.any_instance.stubs(:open).returns StringIO.new(fixture_file("images/logo.png"))
+          end
+
+          it 'rejects large images' do
+            SiteSetting.stubs(:max_image_size_kb).returns(1)
+            xhr :post, :upload_avatar, username: user.username, file: avatar_url
+            response.status.should eq 413
+          end
+
+          it 'rejects unauthorized images' do
+            SiteSetting.stubs(:authorized_image?).returns(false)
+            xhr :post, :upload_avatar, username: user.username, file: avatar_url
+            response.status.should eq 422
+          end
+
+          it 'is successful' do
+            upload = Fabricate(:upload)
+            Upload.expects(:create_for).returns(upload)
+            # enqueues the avatar generator job
+            Jobs.expects(:enqueue).with(:generate_avatars, { user_id: user.id, upload_id: upload.id })
+            xhr :post, :upload_avatar, username: user.username, file: avatar_url
+            user.reload
+            user.uploaded_avatar_template.should == nil
+            user.uploaded_avatar.id.should == upload.id
+            user.use_uploaded_avatar.should == true
+
+            # returns the url, width and height of the uploaded image
+            json = JSON.parse(response.body)
+            json['url'].should == "/uploads/default/1/1234567890123456.jpg"
+            json['width'].should == 100
+            json['height'].should == 200
+          end
+        end
+
+        it "should handle malformed urls" do
+          xhr :post, :upload_avatar, username: user.username, file: "foobar"
+          response.status.should eq 422
+        end
+
       end
 
     end
@@ -1019,5 +1145,4 @@ describe UsersController do
     end
 
   end
-
 end

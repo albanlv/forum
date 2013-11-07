@@ -80,9 +80,6 @@ Discourse::Application.configure do
   # this will cause all handlebars templates to be pre-compiles, making your page faster
   config.handlebars.precompile = true
 
-  # this setting enables rack_cache so it caches various requests in redis
-  config.enable_rack_cache = true
-
   # allows admins to use mini profiler
   config.enable_mini_profiler = true
 
@@ -100,6 +97,8 @@ Discourse::Application.configure do
   # a comma delimited list of emails your devs have
   # developers have god like rights and may impersonate anyone in the system
   # normal admins may only impersonate other moderators (not admins)
-  config.developer_emails = []
+  if emails = ENV["DEVELOPER_EMAILS"]
+    config.developer_emails = emails.split(",")
+  end
 
 end

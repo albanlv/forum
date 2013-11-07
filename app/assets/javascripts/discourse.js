@@ -227,7 +227,6 @@ Discourse = Ember.Application.createWithMixins(Discourse.Ajax, {
   **/
   start: function() {
     Discourse.bindDOMEvents();
-    Discourse.SiteSettings = PreloadStore.get('siteSettings');
     Discourse.MessageBus.alwaysLongPoll = Discourse.Environment === "development";
     Discourse.MessageBus.start();
     Discourse.KeyValueStore.init("discourse_", Discourse.MessageBus);
@@ -249,4 +248,3 @@ Discourse = Ember.Application.createWithMixins(Discourse.Ajax, {
 });
 
 Discourse.Router = Discourse.Router.reopen({ location: 'discourse_location' });
-

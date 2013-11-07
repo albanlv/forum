@@ -226,6 +226,29 @@ describe UserDestroyer do
         end
       end
     end
+
+    context 'ip address screening' do
+      it "doesn't create screened_ip_address records by default" do
+        ScreenedIpAddress.expects(:watch).never
+        UserDestroyer.new(@admin).destroy(@user)
+      end
+
+      it "creates new screened_ip_address records when block_ip is true" do
+        ScreenedIpAddress.expects(:watch).with(@user.ip_address).returns(stub_everything)
+        UserDestroyer.new(@admin).destroy(@user, {block_ip: true})
+      end
+    end
+
+    context 'user created a category' do
+      let!(:category) { Fabricate(:category, user: @user) }
+
+      it "assigns the system user to the categories" do
+        UserDestroyer.new(@admin).destroy(@user, {delete_posts: true})
+        category.reload.user_id.should == Discourse.system_user.id
+        category.topic.should be_present
+        category.topic.user_id.should == Discourse.system_user.id
+      end
+    end
   end
 
 end

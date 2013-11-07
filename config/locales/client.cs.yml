@@ -564,7 +564,6 @@ cs:
       title: Detaily bodování tématu
 
     topic:
-      create_in: 'Nové téma v kategorii {{categoryName}}'
       create: 'Nové téma'
       create_long: 'Vytvořit nové téma'
       private_message: 'Vytvořit soukromou konverzaci'
@@ -935,7 +934,6 @@ cs:
       none: '(bez kategorie)'
       edit: 'upravit'
       edit_long: "Upravit kategorii"
-      edit_uncategorized: "Upravit nekategorizované"
       view: 'Zobrazit témata v kategorii'
       general: 'Obecné'
       settings: 'Nastavení'

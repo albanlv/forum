@@ -574,7 +574,6 @@ de:
       title: Themadetails
 
     topic:
-      create_in: 'Neues Thema in {{categoryName}}'
       create: 'Neues Thema'
       create_long: 'Neues Thema beginnen'
       private_message: 'Beginne ein privates Gespräch'
@@ -925,7 +924,6 @@ de:
       none: '(keine Kategorie)'
       edit: 'Bearbeiten'
       edit_long: "Kategorie bearbeiten"
-      edit_uncategorized: "Unkategorisierte bearbeiten"
       view: 'Zeige Themen dieser Kategorie'
       general: 'Generell'
       settings: 'Einstellungen'

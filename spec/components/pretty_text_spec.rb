@@ -32,7 +32,7 @@ describe PrettyText do
     end
 
     it "should sanitize the html" do
-      PrettyText.cook("<script>alert(42)</script>").should match_html "alert(42)"
+      PrettyText.cook("<script>alert(42)</script>").should match_html "<p></p>"
     end
 
     it 'should allow for @mentions to have punctuation' do
@@ -177,20 +177,4 @@ describe PrettyText do
     end
   end
 
-  describe "apply cdn" do
-    it "should detect bare links to images and apply a CDN" do
-      PrettyText.apply_cdn("<a href='/hello.png'>hello</a><img src='/a.jpeg'>","http://a.com").should ==
-        "<a href=\"http://a.com/hello.png\">hello</a><img src=\"http://a.com/a.jpeg\">"
-    end
-
-    it "should not touch non images" do
-      PrettyText.apply_cdn("<a href='/hello'>hello</a>","http://a.com").should ==
-        "<a href=\"/hello\">hello</a>"
-    end
-
-    it "should not touch schemaless links" do
-      PrettyText.apply_cdn("<a href='//hello'>hello</a>","http://a.com").should ==
-        "<a href=\"//hello\">hello</a>"
-    end
-  end
 end

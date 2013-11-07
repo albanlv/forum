@@ -527,7 +527,6 @@ zh_TW:
       title: 主題排名詳細
 
     topic:
-      create_in: '創建一個 {{categoryName}} 分類的主題'
       create: '創建主題'
       create_long: '創建一個新主題'
       private_message: '開啓一段私下交流'
@@ -844,7 +843,6 @@ zh_TW:
       none: '（未分類）'
       edit: '編輯'
       edit_long: "編輯分類"
-      edit_uncategorized: "編輯未分類的"
       view: '浏覽分類下的主題'
       general: '通常'
       settings: '設置'
