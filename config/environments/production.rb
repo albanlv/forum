@@ -91,4 +91,7 @@ Discourse::Application.configure do
     config.developer_emails = emails.split(",")
   end
 
+  # following error message in sidekiq log
+  config.eager_load = true
+
 end
