@@ -9,7 +9,18 @@
 
     {{#if model.viewOpen}}
       <div class='control-row reply-area'>
-        <div class='reply-to'>{{{model.actionTitle}}}:</div>
+        <div class='reply-to'>
+          {{{model.actionTitle}}}:
+          {{#if canEdit}}
+            {{#if showEditReason}}
+              <div class="edit-reason-input">
+                {{textField value=editReason tabindex="5" id="edit-reason" maxlength="255" placeholderKey="composer.edit_reason_placeholder"}}
+              </div>
+            {{else}}
+              <a {{action displayEditReason}}>{{i18n composer.show_edit_reason}}</a>
+            {{/if}}
+          {{/if}}
+        </div>
 
         {{#if model.canEditTitle}}
           <div class='form-element clearfix'>
@@ -24,7 +35,7 @@
             {{/if}}
 
             <div class="title-input">
-              {{textField value=model.title tabindex="2" id="reply-title" maxlength="255" class="span8" placeholderKey="composer.title_placeholder"}}
+              {{textField value=model.title tabindex="2" id="reply-title" maxlength="255" placeholderKey="composer.title_placeholder"}}
               {{popupInputTip validation=view.titleValidation shownAt=view.showTitleTip}}
             </div>
 

@@ -4,12 +4,11 @@ module Jobs
 
     def initialize
       # maximum size of the file in bytes
-      @max_size = SiteSetting.max_image_size_kb * 1024
+      @max_size = SiteSetting.max_image_size_kb.kilobytes
     end
 
     def execute(args)
-      # we don't want to run the job if we're not allowed to crawl images
-      return unless SiteSetting.crawl_images?
+      return unless SiteSetting.download_remote_images_to_local?
 
       post_id = args[:post_id]
       raise Discourse::InvalidParameters.new(:post_id) unless post_id.present?
@@ -28,13 +27,13 @@ module Jobs
             # have we already downloaded that file?
             if !downloaded_urls.include?(src)
               hotlinked = download(src)
-              if hotlinked.size <= @max_size
+              if hotlinked.try(:size) <= @max_size
                 filename = File.basename(URI.parse(src).path)
                 file = ActionDispatch::Http::UploadedFile.new(tempfile: hotlinked, filename: filename)
                 upload = Upload.create_for(post.user_id, file, hotlinked.size, src)
                 downloaded_urls[src] = upload.url
               else
-                Rails.logger.warn("Failed to pull hotlinked image: #{src} - Image is bigger than #{@max_size}")
+                puts "Failed to pull hotlinked image: #{src} - Image is bigger than #{@max_size}"
               end
             end
             # have we successfuly downloaded that file?
@@ -54,7 +53,7 @@ module Jobs
               raw.gsub!(src, "<img src='#{url}'>")
             end
           rescue => e
-            Rails.logger.error("Failed to pull hotlinked image: #{src}\n" + e.message + "\n" + e.backtrace.join("\n"))
+            puts "Failed to pull hotlinked image: #{src}\n" + e.message + "\n" + e.backtrace.join("\n")
           ensure
             # close & delete the temp file
             hotlinked && hotlinked.close!
@@ -65,7 +64,10 @@ module Jobs
 
       # TODO: make sure the post hasn´t changed while we were downloading remote images
       if raw != post.raw
-        options = { force_new_version: true }
+        options = {
+          force_new_version: true,
+          edit_reason: I18n.t("upload.edit_reason")
+        }
         post.revise(Discourse.system_user, raw, options)
       end
 
@@ -81,6 +83,7 @@ module Jobs
     end
 
     def download(url)
+      return if @max_size <= 0
       extension = File.extname(URI.parse(url).path)
       tmp = Tempfile.new(["discourse-hotlinked", extension])
 

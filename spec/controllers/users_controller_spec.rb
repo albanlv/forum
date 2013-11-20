@@ -249,7 +249,7 @@ describe UsersController do
     context 'valid token' do
       before do
         EmailToken.expects(:confirm).with('asdfasdf').returns(user)
-        get :password_reset, token: 'asdfasdf'
+        put :password_reset, token: 'asdfasdf', password: 'newpassword'
       end
 
       it 'returns success' do
@@ -545,7 +545,7 @@ describe UsersController do
       DiscourseHub.stubs(:nickname_available?).returns([true, nil])
     end
 
-    it 'raises an error without a username parameter' do
+    it 'raises an error without any parameters' do
       lambda { xhr :get, :check_username }.should raise_error(ActionController::ParameterMissing)
     end
 
@@ -580,29 +580,19 @@ describe UsersController do
         DiscourseHub.expects(:nickname_match?).never
       end
 
-      context 'available everywhere' do
+      it 'returns nothing when given an email param but no username' do
+        xhr :get, :check_username, email: 'dood@example.com'
+        response.should be_success
+      end
+
+      context 'username is available' do
         before do
           xhr :get, :check_username, username: 'BruceWayne'
         end
         include_examples 'when username is available everywhere'
       end
 
-      context 'available locally but not globally' do
-        before do
-          xhr :get, :check_username, username: 'BruceWayne'
-        end
-        include_examples 'when username is available everywhere'
-      end
-
-      context 'unavailable locally but available globally' do
-        let!(:user) { Fabricate(:user) }
-        before do
-          xhr :get, :check_username, username: user.username
-        end
-        include_examples 'when username is unavailable locally'
-      end
-
-      context 'unavailable everywhere' do
+      context 'username is unavailable' do
         let!(:user) { Fabricate(:user) }
         before do
           xhr :get, :check_username, username: user.username
@@ -641,7 +631,7 @@ describe UsersController do
         end
         include_examples 'checking an invalid username'
 
-        it 'should return the "too short" message' do
+        it 'should return the "too long" message' do
           ::JSON.parse(response.body)['errors'].should include(I18n.t(:'user.username.long', max: User.username_length.end))
         end
       end
@@ -679,11 +669,19 @@ describe UsersController do
           include_examples 'check_username when nickname is available everywhere'
         end
 
-        context 'and email is given' do
+        context 'both username and email is given' do
           before do
             xhr :get, :check_username, username: 'BruceWayne', email: 'brucie@gmail.com'
           end
           include_examples 'check_username when nickname is available everywhere'
+        end
+
+        context 'only email is given' do
+          it "should check for a matching username" do
+            UsernameCheckerService.any_instance.expects(:check_username).with(nil, 'brucie@gmail.com').returns({json: 'blah'})
+            xhr :get, :check_username, email: 'brucie@gmail.com'
+            response.should be_success
+          end
         end
       end
 
@@ -813,15 +811,142 @@ describe UsersController do
     end
   end
 
-  describe '.invited' do
-
-    let(:user) { Fabricate(:user) }
-
+  describe '#invited' do
     it 'returns success' do
+      user = Fabricate(:user)
+
       xhr :get, :invited, username: user.username
-      response.should be_success
+
+      expect(response).to be_success
     end
 
+    it 'filters by email' do
+      inviter = Fabricate(:user)
+      invitee = Fabricate(:user)
+      invite = Fabricate(
+        :invite,
+        email: 'billybob@example.com',
+        invited_by: inviter,
+        user: invitee
+      )
+      Fabricate(
+        :invite,
+        email: 'jimtom@example.com',
+        invited_by: inviter,
+        user: invitee
+      )
+
+      xhr :get, :invited, username: inviter.username, filter: 'billybob'
+
+      invites = JSON.parse(response.body)
+      expect(invites).to have(1).item
+      expect(invites.first).to include('email' => 'billybob@example.com')
+    end
+
+    it 'filters by username' do
+      inviter = Fabricate(:user)
+      invitee = Fabricate(:user, username: 'billybob')
+      invite = Fabricate(
+        :invite,
+        invited_by: inviter,
+        email: 'billybob@example.com',
+        user: invitee
+      )
+      Fabricate(
+        :invite,
+        invited_by: inviter,
+        user: Fabricate(:user, username: 'jimtom')
+      )
+
+      xhr :get, :invited, username: inviter.username, filter: 'billybob'
+
+      invites = JSON.parse(response.body)
+      expect(invites).to have(1).item
+      expect(invites.first).to include('email' => 'billybob@example.com')
+    end
+
+    context 'with guest' do
+      context 'with pending invites' do
+        it 'does not return invites' do
+          inviter = Fabricate(:user)
+          Fabricate(:invite, invited_by: inviter)
+
+          xhr :get, :invited, username: inviter.username
+
+          invites = JSON.parse(response.body)
+          expect(invites).to be_empty
+        end
+      end
+
+      context 'with redeemed invites' do
+        it 'returns invites' do
+          inviter = Fabricate(:user)
+          invitee = Fabricate(:user)
+          invite = Fabricate(:invite, invited_by: inviter, user: invitee)
+
+          xhr :get, :invited, username: inviter.username
+
+          invites = JSON.parse(response.body)
+          expect(invites).to have(1).item
+          expect(invites.first).to include('email' => invite.email)
+        end
+      end
+    end
+
+    context 'with authenticated user' do
+      context 'with pending invites' do
+        context 'with permission to see pending invites' do
+          it 'returns invites' do
+            user = log_in
+            inviter = Fabricate(:user)
+            invite = Fabricate(:invite, invited_by: inviter)
+            stub_guardian(user) do |guardian|
+              guardian.stubs(:can_see_pending_invites_from?).
+                with(inviter).returns(true)
+            end
+
+            xhr :get, :invited, username: inviter.username
+
+            invites = JSON.parse(response.body)
+            expect(invites).to have(1).item
+            expect(invites.first).to include("email" => invite.email)
+          end
+        end
+
+        context 'without permission to see pending invites' do
+          it 'does not return invites' do
+            user = log_in
+            inviter = Fabricate(:user)
+            invitee = Fabricate(:user)
+            Fabricate(:invite, invited_by: inviter)
+            stub_guardian(user) do |guardian|
+              guardian.stubs(:can_see_pending_invites_from?).
+                with(inviter).returns(false)
+            end
+
+            xhr :get, :invited, username: inviter.username
+
+            invites = JSON.parse(response.body)
+            expect(invites).to be_empty
+          end
+        end
+      end
+
+      context 'with redeemed invites' do
+        it 'returns invites' do
+          user = log_in
+          inviter = Fabricate(:user)
+          invitee = Fabricate(:user)
+          invite = Fabricate(:invite, invited_by: inviter, user: invitee)
+
+          xhr :get, :invited, username: inviter.username
+
+          invites = JSON.parse(response.body)
+          expect(invites).to have(1).item
+          expect(invites.first).to include('email' => invite.email)
+        end
+      end
+    end
   end
 
   describe '#update' do
@@ -853,29 +978,9 @@ describe UsersController do
           json = JSON.parse(response.body)
           expect(json['user']['id']).to eq user.id
         end
-
-        context 'when website includes http' do
-          it 'does not add http before updating' do
-            user = log_in
-
-            put :update, username: user.username, website: 'http://example.com'
-
-            expect(user.reload.website).to eq 'http://example.com'
-          end
-        end
-
-        context 'when website does not include http' do
-          it 'adds http before updating' do
-            user = log_in
-
-            put :update, username: user.username, website: 'example.com'
-
-            expect(user.reload.website).to eq 'http://example.com'
-          end
-        end
       end
 
-      context 'without permission to update any attributes' do
+      context 'without permission to update' do
         it 'does not allow the update' do
           user = Fabricate(:user, name: 'Billy Bob')
           log_in_user(user)
@@ -887,20 +992,6 @@ describe UsersController do
 
           expect(response).to be_forbidden
           expect(user.reload.name).not_to eq 'Jim Tom'
-        end
-      end
-
-      context 'without permission to update title' do
-        it 'does not allow the user to update their title' do
-          user = Fabricate(:user, title: 'Emperor')
-          log_in_user(user)
-          guardian = Guardian.new(user)
-          guardian.stubs(can_grant_title?: false).with(user)
-          Guardian.stubs(new: guardian).with(user)
-
-          put :update, username: user.username, title: 'Minion'
-
-          expect(user.reload.title).not_to eq 'Minion'
         end
       end
     end
@@ -1030,7 +1121,7 @@ describe UsersController do
         end
 
         it 'rejects large images' do
-          SiteSetting.stubs(:max_image_size_kb).returns(1)
+          AvatarUploadPolicy.any_instance.stubs(:too_big?).returns(true)
           xhr :post, :upload_avatar, username: user.username, file: avatar
           response.status.should eq 413
         end
@@ -1075,7 +1166,7 @@ describe UsersController do
           end
 
           it 'rejects large images' do
-            SiteSetting.stubs(:max_image_size_kb).returns(1)
+            AvatarUploadPolicy.any_instance.stubs(:too_big?).returns(true)
             xhr :post, :upload_avatar, username: user.username, file: avatar_url
             response.status.should eq 413
           end

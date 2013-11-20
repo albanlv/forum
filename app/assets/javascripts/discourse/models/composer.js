@@ -361,6 +361,11 @@ Discourse.Composer = Discourse.Model.extend({
           loading: false
         });
       });
+    } else if (opts.action === REPLY && opts.quote) {
+      this.setProperties({
+        reply: opts.quote,
+        originalText: opts.quote
+      });
     }
     if (opts.title) { this.set('title', opts.title); }
     this.set('originalText', opts.draft ? '' : this.get('reply'));
@@ -384,7 +389,8 @@ Discourse.Composer = Discourse.Model.extend({
       originalText: null,
       reply: null,
       post: null,
-      title: null
+      title: null,
+      editReason: null
     });
   },
 
@@ -407,6 +413,7 @@ Discourse.Composer = Discourse.Model.extend({
 
     post.setProperties({
       raw: this.get('reply'),
+      editReason: opts.editReason,
       imageSizes: opts.imageSizes,
       cooked: $('#wmd-preview').html()
     });

@@ -241,9 +241,8 @@
       input#reply-title {
         padding: 7px 10px;
         margin: 6px 10px 3px 0;
-        width: 400px;
-
       }
+      input#reply-title { width: 400px; }
       .wmd-controls {
         @include transition(top 0.3s ease);
         top: 100px;
@@ -254,6 +253,7 @@
     padding: 10px;
     min-width: 1280px;
     .form-element {
+      display: inline-block;
       .chzn-container {
         width: 400px;
         margin-top: 6px;
@@ -281,6 +281,17 @@
           @include medium-width { width: 233px; }
           @include small-width { width: 168px; }
         }
+      }
+    }
+    .edit-reason-input {
+      display: inline-block;
+      position: absolute;
+      margin-left: 10px;
+      top: 18px;
+      #edit-reason {
+        margin: 0;
+        padding: 5px;
+        float: left;
       }
     }
     #reply-title {
@@ -357,7 +368,6 @@ div.ac-wrap {
   background-color: $white;
   border: 1px solid #cccccc;
   padding: 5px 10px;
-  @include border-radius-all(3px);
   div.item {
     float: left;
     margin-right: 10px;
