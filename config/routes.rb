@@ -162,9 +162,9 @@ Discourse::Application.routes.draw do
   get 'posts/by_number/:topic_id/:post_number' => 'posts#by_number'
   get 'posts/:id/reply-history' => 'posts#reply_history'
   resources :posts do
-    get 'versions'
     put 'bookmark'
     get 'replies'
+    get 'revisions/:revision' => 'posts#revisions'
     put 'recover'
     collection do
       delete 'destroy_many'
@@ -200,6 +200,7 @@ Discourse::Application.routes.draw do
 
   get 'category/:category.rss' => 'list#category_feed', format: :rss, as: 'category_feed'
   get 'category/:category' => 'list#category', as: 'category_list'
+  get 'category/:category/none' => 'list#category_none', as: 'category_list_none'
   get 'category/:category/more' => 'list#category', as: 'category_list_more'
 
   # We've renamed popular to latest. If people access it we want a permanent redirect.

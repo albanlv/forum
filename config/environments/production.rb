@@ -3,7 +3,6 @@ Discourse::Application.configure do
 
   # Code is not reloaded between requests
   config.cache_classes = true
-
   config.eager_load = true
 
   # Full error reports are disabled and caching is turned on
@@ -13,8 +12,12 @@ Discourse::Application.configure do
   # Disable Rails's static asset server (Apache or nginx will already do this)
   config.serve_static_assets = false
 
-  # Compress JavaScripts and CSS
-  config.assets.compress = true
+  if rails4?
+    config.assets.js_compressor  = :uglifier
+    config.assets.css_compressor = :sass
+  else
+    config.assets.compress = true
+  end
 
   # stuff should be pre-compiled
   config.assets.compile = false
@@ -29,7 +32,6 @@ Discourse::Application.configure do
   # the I18n.default_locale when a translation can not be found)
   config.i18n.fallbacks = true
 
-
   # you may use other configuration here for mail eg: sendgrid
    config.action_mailer.default_url_options = { :host => 'forum.sharelex.org' }
 
@@ -38,33 +40,13 @@ Discourse::Application.configure do
    config.action_mailer.raise_delivery_errors = false
    config.action_mailer.default :charset => "utf-8"
    config.action_mailer.smtp_settings = {
-     :address              => "smtp.mandrillapp.com",
-     :port                 => 587,
-     :user_name            => ENV["MANDRILL_USERNAME"],
-     :password             => ENV["MANDRILL_API_KEY"],
-  }
 
-#  if ENV.key?('SMTP_URL')
-#    config.action_mailer.smtp_settings = begin
-#      uri = URI.parse(ENV['SMTP_URL'])
-#      params = {
-#        :address              => uri.host,
-#        :port                 => uri.port,
-#        :domain               => (uri.path || "").split("/")[1],
-#        :user_name            => uri.user,
-#        :password             => uri.password,
-#        :authentication       => 'plain',
-#        :enable_starttls_auto => true
-#      }
-#      CGI.parse(uri.query || "").each {|k,v| params[k.to_sym] = v.first}
-#      params
-#    rescue
-#      raise "Invalid SMTP_URL"
-#    end
-#  else
-#    config.action_mailer.delivery_method = :sendmail
-#    config.action_mailer.sendmail_settings = {arguments: '-i'}
-#  end
+        :address              => "smtp.mandrillapp.com",
+        :port                 => 587,
+        :user_name            => ENV["MANDRILL_USERNAME"],
+        :password             => ENV["MANDRILL_API_KEY"],
+        :authentication       => 'plain',
+      }
 
   # Send deprecation notices to registered listeners
   config.active_support.deprecation = :notify
@@ -73,14 +55,7 @@ Discourse::Application.configure do
   config.handlebars.precompile = true
 
   # allows admins to use mini profiler
-  config.enable_mini_profiler = true
-
-  # allows Cross-origin resource sharing (CORS) for API access in JavaScript (default to false for security).
-  # See the initializer and https://github.com/cyu/rack-cors for configuration documentation.
-  #
-  # config.enable_rack_cors = false
-  # config.rack_cors_origins = ['*']
-  # config.rack_cors_resource = ['*', { :headers => :any, :methods => [:get, :post, :options] }]
+  config.enable_mini_profiler = !ENV["DISABLE_MINI_PROFILER"]
 
   # Discourse strongly recommend you use a CDN.
   # For origin pull cdns all you need to do is register an account and configure

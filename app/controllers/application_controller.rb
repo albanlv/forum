@@ -26,7 +26,6 @@ class ApplicationController < ActionController::Base
   end
 
   before_filter :set_locale
-  before_filter :set_mobile_view
   before_filter :inject_preview_style
   before_filter :disable_customization
   before_filter :block_if_maintenance_mode
@@ -120,10 +119,6 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  def set_mobile_view
-    session[:mobile_view] = params[:mobile_view] if params.has_key?(:mobile_view)
-  end
-
   def inject_preview_style
     style = request['preview-style']
     session[:preview_style] = style if style
@@ -196,12 +191,20 @@ class ApplicationController < ActionController::Base
     def preload_anonymous_data
       store_preloaded("site", Site.cached_json(guardian))
       store_preloaded("siteSettings", SiteSetting.client_settings_json)
+      store_preloaded("customHTML", custom_html_json)
     end
 
     def preload_current_user_data
       store_preloaded("currentUser", MultiJson.dump(CurrentUserSerializer.new(current_user, scope: guardian, root: false)))
       serializer = ActiveModel::ArraySerializer.new(TopicTrackingState.report([current_user.id]), each_serializer: TopicTrackingStateSerializer)
       store_preloaded("topicTrackingStates", MultiJson.dump(serializer))
+    end
+
+    def custom_html_json
+      MultiJson.dump({
+        top: SiteContent.content_for(:top),
+        bottom: SiteContent.content_for(:bottom),
+      })
     end
 
     def render_json_error(obj)
