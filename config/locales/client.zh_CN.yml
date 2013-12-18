@@ -383,7 +383,7 @@ zh_CN:
 
     summary:
       enabled_description: "你现在正在浏览本主题的“概括”视图。要查看所有帖子，请点击下方。"
-      description: "本主题中有<b>{{count}}</b>个帖子，是否只查看与主题最相关的帖子？"
+      description: "本主题中有<b>{{count}}</b>个帖子，是否只查看与主题最相关的帖子以节省时间？"
       enable: '概括本主题'
       disable: '显示所有帖子'
 
@@ -478,9 +478,9 @@ zh_CN:
       create_pm: "创建私信"
 
       users_placeholder: "添加一个用户"
-      title_placeholder: "在此输入你的标题，简明扼要的用一句话说明讨论的内容。"
+      title_placeholder: "为什么需要编辑？"
       edit_reason_placeholder: "编辑理由"
-      show_edit_reason: "（添加理由）"
+      show_edit_reason: "（添加编辑理由）"
       reply_placeholder: "在此输入你的内容。你可以使用 Markdown（参考 http://wowubuntu.com/markdown/） 或 BBCode（参考 http://www.bbcode.org/reference.php） 来格式化内容。拖拽或粘贴一幅图片到这儿即可将它上传。"
       view_new_post: "浏览你的新帖子。"
       saving: "保存中……"
@@ -517,8 +517,10 @@ zh_CN:
       toggler: "隐藏或显示编辑面板"
 
       admin_options_title: "本主题可选设置"
-      auto_close_label: "自动关闭主题，过："
-      auto_close_units: "天"
+      auto_close_label: "自动关闭主题时间："
+      auto_close_units: "（可以是小时数，具体时间，或某个时间戳）"
+      auto_close_examples: '例如：24, 17:00, 2013-11-22 14:00'
+      auto_close_error: "请输入有效数值。"
 
     notifications:
       title: "使用 @name 提及到你，回复你的帖子和主题，私信等等的通知消息"
@@ -670,8 +672,10 @@ zh_CN:
         title: 主题进度
         jump_top: 跳转到第一帖
         jump_bottom: 跳转到最后一帖
+        jump_bottom_with_number: "跳转到第%{post_number}帖"
         total: 全部帖子
         current: 当前帖
+        position: "%{total}帖中的第%{current}帖"
 
       notifications:
         title: ''
@@ -751,21 +755,9 @@ zh_CN:
       login_reply: '登录后回复'
 
       filters:
-        user: "你在浏览 {{n_posts}} {{by_n_users}}."
         n_posts:
           one: "一个帖子"
-          other: "{{count}} 帖子"
-        by_n_users:
-          one: "一个指定用户"
-          other: "{{count}}个用户中的"
-
-        summary: "你在浏览{{of_n_posts}}{{n_summarized_posts}}."
-        n_summarized_posts:
-          one: "一个概扩帖子"
-          other: "{{count}}个概扩帖子"
-        of_n_posts:
-          one: "一个帖子中的"
-          other: "{{count}}个帖子中的"
+          other: "{{count}}个帖子"
         cancel: "再次显示本主题下的所有帖子。"
 
       split_topic:
@@ -811,7 +803,10 @@ zh_CN:
         one: "(该帖已被作者撤销，如无报告则将在 %{count} 小时后自动被删除。)"
         other: "(该帖已被作者撤销，如无报告则将在 %{count} 小时后自动被删除。)"
       deleted_by: "删除者为"
-      expand_collapse: "展开/收缩"
+      expand_collapse: "展开/折叠"
+      gap:
+        one: "1个帖子被过滤。"
+        other: "{{count}}个帖子被过滤。"
 
       has_replies:
         one: "回复"
@@ -981,7 +976,8 @@ zh_CN:
       hotness: "热度"
       already_used: '此色彩已经被另一个分类使用'
       security: "安全"
-      auto_close_label: "自动关闭主题，过："
+      auto_close_label: "该时间段后自动关闭主题："
+      auto_close_units: "小时"
       edit_permissions: "编辑权限"
       add_permission: "添加权限"
       this_year: "今年"
@@ -1147,6 +1143,7 @@ zh_CN:
         delete_spammer_title: "删除该用户及其所有帖子和主题。"
 
         flagged_by: "报告者为"
+        system: "系统"
         error: "出错了"
         view_message: "查看消息"
         no_results: "没有报告"
@@ -1433,3 +1430,6 @@ zh_CN:
           rate_limits: '速度限制'
           developer: '开发者'
           uncategorized: '未分类'
+
+    lightbox:
+      download: "下载"

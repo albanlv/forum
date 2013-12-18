@@ -384,6 +384,7 @@ en:
     summary:
       enabled_description: "You're viewing a summary of this topic. To see all posts again, click below."
       description: "There are <b>{{count}}</b> replies. Save reading time by displaying only the most relevant replies?"
+      description_time: "There are <b>{{count}}</b> replies with an estimated read time of <b>{{readingTime}} minutes</b>. Save reading time by displaying only the most relevant replies?"
       enable: 'Summarize This Topic'
       disable: 'Show All Posts'
 
@@ -517,8 +518,10 @@ en:
       toggler: "hide or show the composer panel"
 
       admin_options_title: "Optional staff settings for this topic"
-      auto_close_label: "Auto-close topic after:"
-      auto_close_units: "days"
+      auto_close_label: "Auto-close topic time:"
+      auto_close_units: "(# of hours, a time, or a timestamp)"
+      auto_close_examples: 'Examples: 24, 17:00, 2013-11-22 14:00'
+      auto_close_error: "Please enter a valid value."
 
     notifications:
       title: "notifications of @name mentions, replies to your posts and topics, private messages, etc"
@@ -670,8 +673,10 @@ en:
         title: topic progress
         jump_top: jump to first post
         jump_bottom: jump to last post
+        jump_bottom_with_number: "jump to post %{post_number}"
         total: total posts
         current: current post
+        position: "post %{current} of %{total}"
 
       notifications:
         title: ''
@@ -751,21 +756,9 @@ en:
       login_reply: 'Log In to Reply'
 
       filters:
-        user: "You're viewing only {{n_posts}} {{by_n_users}}."
         n_posts:
           one: "1 post"
           other: "{{count}} posts"
-        by_n_users:
-          one: "made by 1 specific user"
-          other: "made by {{count}} specific users"
-
-        summary: "You're viewing {{n_summarized_posts}} {{of_n_posts}}. "
-        n_summarized_posts:
-          one: "1 summarized post"
-          other: "{{count}} summarized posts"
-        of_n_posts:
-          one: "of 1 in the topic"
-          other: "of {{count}} in the topic"
         cancel: "Show all posts in this topic again."
 
       split_topic:
@@ -812,6 +805,9 @@ en:
         other: "(post withdrawn by author, will be automatically deleted in %{count} hours unless flagged)"
       deleted_by: "deleted by"
       expand_collapse: "expand/collapse"
+      gap:
+        one: "1 post omitted"
+        other: "{{count}} posts omitted"
 
       has_replies:
         one: "Reply"
@@ -982,6 +978,7 @@ en:
       already_used: 'This color has been used by another category'
       security: "Security"
       auto_close_label: "Auto-close topics after:"
+      auto_close_units: "hours"
       edit_permissions: "Edit Permissions"
       add_permission: "Add Permission"
       this_year: "this year"
@@ -1436,3 +1433,6 @@ en:
           rate_limits: 'Rate Limits'
           developer: 'Developer'
           uncategorized: 'Uncategorized'
+
+    lightbox:
+      download: "download"

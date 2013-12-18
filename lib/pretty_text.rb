@@ -46,7 +46,8 @@ module PrettyText
   end
 
   def self.create_new_context
-    ctx = V8::Context.new
+    # timeout any eval that takes longer that 5 seconds
+    ctx = V8::Context.new(timeout: 5000)
 
     ctx["helpers"] = Helpers.new
 
@@ -232,6 +233,22 @@ module PrettyText
     fragment = Nokogiri::HTML.fragment(string)
     fragment.css('a').each {|a| a.replace(a.text) }
     fragment.to_html
+  end
+
+  def self.make_all_links_absolute(html)
+    site_uri = nil
+    doc = Nokogiri::HTML.fragment(html)
+    doc.css("a").each do |l|
+      href = l["href"].to_s
+      begin
+        uri = URI(href)
+        site_uri ||= URI(Discourse.base_url)
+        l["href"] = "#{site_uri}#{l['href']}" unless uri.host.present?
+      rescue URI::InvalidURIError
+        # leave it
+      end
+    end
+    doc.to_html
   end
 
   protected

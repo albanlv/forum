@@ -24,6 +24,7 @@ module Jobs
 
       extract_images_from(post.cooked).each do |image|
         src = image['src']
+        src = "http:" + src if src.start_with?("//")
 
         if is_valid_image_url(src)
           begin
@@ -73,7 +74,6 @@ module Jobs
         options[:bypass_bump] = true if args[:bypass_bump] == true
         post.revise(Discourse.system_user, raw, options)
       end
-
     end
 
     def extract_images_from(html)

@@ -12,6 +12,7 @@ class CookedPostProcessor
     @dirty = false
     @opts = opts
     @post = post
+    @previous_cooked = (@post.cooked || "").dup
     @doc = Nokogiri::HTML::fragment(post.cooked)
     @size_cache = {}
   end
@@ -58,7 +59,6 @@ class CookedPostProcessor
       src, width, height = img["src"], img["width"], img["height"]
       limit_size!(img)
       convert_to_link!(img)
-      @dirty |= (src != img["src"]) || (width.to_i != img["width"].to_i) || (height.to_i != img["height"].to_i)
     end
 
     update_topic_image(images)
@@ -70,9 +70,20 @@ class CookedPostProcessor
   end
 
   def limit_size!(img)
-    w, h = get_size_from_image_sizes(img["src"], @opts[:image_sizes]) || get_size(img["src"])
+    # retrieve the size from
+    #  1) the width/height attributes
+    #  2) the dimension from the preview (image_sizes)
+    #  3) the dimension of the original image (HTTP request)
+    w, h = get_size_from_attributes(img) ||
+           get_size_from_image_sizes(img["src"], @opts[:image_sizes]) ||
+           get_size(img["src"])
     # limit the size of the thumbnail
     img["width"], img["height"] = ImageSizer.resize(w, h)
+  end
+
+  def get_size_from_attributes(img)
+    w, h = img["width"].to_i, img["height"].to_i
+    return [w, h] if w > 0 && h > 0
   end
 
   def get_size_from_image_sizes(src, image_sizes)
@@ -119,8 +130,6 @@ class CookedPostProcessor
     end
 
     add_lightbox!(img, original_width, original_height, upload)
-
-    @dirty = true
   end
 
   def is_a_hyperlink?(img)
@@ -136,6 +145,7 @@ class CookedPostProcessor
   def add_lightbox!(img, original_width, original_height, upload=nil)
     # first, create a div to hold our lightbox
     lightbox = Nokogiri::XML::Node.new("div", @doc)
+    lightbox["class"] = "lightbox-wrapper"
     img.add_next_sibling(lightbox)
     lightbox.add_child(img)
 
@@ -158,6 +168,8 @@ class CookedPostProcessor
     filename = get_filename(upload, img["src"])
     informations = "#{original_width}x#{original_height}"
     informations << " #{number_to_human_size(upload.filesize)}" if upload
+
+    a["title"] = filename
 
     meta.add_child create_span_node("filename", filename)
     meta.add_child create_span_node("informations", informations)
@@ -193,8 +205,6 @@ class CookedPostProcessor
     result = Oneboxer.apply(@doc) do |url, element|
       Oneboxer.onebox(url, args)
     end
-
-    @dirty |= result.changed?
   end
 
   def optimize_urls
@@ -237,7 +247,7 @@ class CookedPostProcessor
   end
 
   def dirty?
-    @dirty
+    @previous_cooked != html
   end
 
   def html
