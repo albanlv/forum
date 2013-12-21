@@ -116,6 +116,7 @@ gem 'oj'
 gem 'pg', '0.15.1'
 gem 'rake'
 
+
 gem 'rest-client'
 gem 'rinku'
 gem 'sanitize'
@@ -194,9 +195,6 @@ gem 'rack-cors', require: false
 gem 'unicorn', require: false
 gem 'puma', require: false
 gem 'rbtrace', require: false
-
-gem 'unicorn', group: :production
-gem 'rb-inotify', '~> 0.9', group: :production
 
 # perftools only works on 1.9 atm
 group :profile do
