@@ -70,8 +70,8 @@ gem 'handlebars-source', '~> 1.1.2'
 gem 'barber'
 
 gem 'message_bus'
-gem 'rails_multisite', path: 'vendor/gems/rails_multisite'
-gem 'simple_handlebars_rails', path: 'vendor/gems/simple_handlebars_rails'
+# gem 'rails_multisite', path: 'vendor/gems/rails_multisite'
+# gem 'simple_handlebars_rails', path: 'vendor/gems/simple_handlebars_rails'
 
 gem 'redcarpet', require: false
 gem 'airbrake', '3.1.2', require: false # errbit is broken with 3.1.3 for now
@@ -173,7 +173,7 @@ end
 
 # Gem that enables support for plugins. It is required.
 # TODO: does this really need to be a gem ?
-gem 'discourse_plugin', path: 'vendor/gems/discourse_plugin'
+# gem 'discourse_plugin', path: 'vendor/gems/discourse_plugin'
 
 # this is an optional gem, it provides a high performance replacement
 # to String#blank? a method that is called quite frequently in current
