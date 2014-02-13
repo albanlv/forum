@@ -2,7 +2,6 @@ development:
   adapter: postgresql
   database: discourse_development
   min_messages: warning
-  host: localhost
   pool: 5
   timeout: 5000
   host_names:
@@ -19,7 +18,6 @@ test:
   adapter: postgresql
   database: discourse_test
   min_messages: warning
-  host: localhost
   pool: 5
   timeout: 5000
   host_names:
@@ -30,22 +28,13 @@ profile:
   adapter: postgresql
   database: discourse_profile
   min_messages: warning
-  host: localhost
   pool: 5
   timeout: 5000
   host_names:
     - "localhost"
 
-production:
-  pool: <%= ENV['POSTGRES_CONNECTION_POOL'] || 5 %>
-  timeout: 5000
-  adapter: postgresql
-  uri: <%= uri = URI.parse(ENV['POSTGRES_URL'] ? ENV['POSTGRES_URL'] : "pg://localhost") %>
-  socket: <%= ENV['POSTGRES_SOCKET'] %>
-  host: <%= ENV['POSTGRES_SOCKET'].present? ? nil : uri.host  %>
-  port: <%= uri.port || (ENV['POSTGRES_SOCKET'].present? ? nil : 5432) %>
-  database: <%= ENV['POSTGRES_DB'] || "discourse" %>
-  username: <%= uri.user %>
-  password: <%= uri.password %>
-  host_names:
-    - <%= ENV["DISCOURSE_HOSTNAME"] || raise("env var for DISCOURSE_HOSTNAME must be set") %> # Update this to be the domain of your production site
+# You may be surprised production is not here, it is sourced from application.rb using a monkey patch
+# This is done for 2 reasons
+#
+# 1. we need to support blank settings correctly and rendering nothing in yaml/erb is a PITA
+# 2. why go from object -> yaml -> object, pointless

@@ -25,15 +25,24 @@ module Jobs
       ordered_models_for_export.each do |model|
         log "  #{model.table_name}"
         column_info = model.columns
-        order_col = column_info.map(&:name).find {|x| x == 'id'} || order_columns_for(model)
+        column_names = model.column_names
+
+        results = model.connection.raw_connection.async_exec("select * from #{model.table_name}").to_enum
+
         @encoder.write_table(model.table_name, column_info) do |num_rows_written|
-          if order_col
-            model.connection.select_rows("select * from #{model.table_name} order by #{order_col} limit #{batch_size} offset #{num_rows_written}")
-          else
-            # Take the rows in the order the database returns them
-            log "WARNING: no order by clause is being used for #{model.name} (#{model.table_name}). Please update Jobs::Exporter order_columns_for for #{model.name}."
-            model.connection.select_rows("select * from #{model.table_name} limit #{batch_size} offset #{num_rows_written}")
+          log("#{num_rows_written} rows written") if num_rows_written > 0
+
+          rows = []
+          begin
+            while rows.count < batch_size
+              row = results.next
+              rows << column_names.map{|col| row[col]}
+            end
+          rescue StopIteration
+            # we are done
           end
+
+          rows
         end
       end
       "#{@output_base_filename}.tar.gz"
@@ -90,18 +99,21 @@ module Jobs
 
     def create_tar_file
       filenames = @encoder.filenames
+      tar_filename = "#{@output_base_filename}.tar"
+      upload_directory = "uploads/" + RailsMultisite::ConnectionManagement.current_db
 
-      FileUtils.cd( File.dirname(filenames.first) ) do
-        `tar cvf #{@output_base_filename}.tar #{File.basename(filenames.first)}`
+      FileUtils.cd(File.join(Rails.root, 'public')) do
+        `tar cvf #{tar_filename} #{upload_directory}`
       end
 
-      FileUtils.cd( File.join(Rails.root, 'public') ) do
-        Upload.find_each do |upload|
-          `tar rvf #{@output_base_filename}.tar #{upload.url[1..-1]}` unless upload.url[0,4] == 'http'
+      filenames.each do |filename|
+        FileUtils.cd(File.dirname(filename)) do
+          `tar --append --file=#{tar_filename} #{File.basename(filename)}`
         end
       end
 
-      `gzip #{@output_base_filename}.tar`
+
+      `gzip #{tar_filename}`
 
       true
     end

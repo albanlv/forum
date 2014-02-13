@@ -14,17 +14,16 @@ a.loading-onebox {
 
 
 .onebox-result {
-
-    margin-top: 15px;
-  padding: 12px 25px 12px 12px; 
-  border-left: 5px solid #bebebe;
-  background: #eee;
+  margin-top: 15px;
+  padding: 12px 25px 12px 12px;
+  border-left: 5px solid $primary_light;
+  background: $primary_lightest;
   font-size: 14px;
   > .source {
     margin-bottom: 12px;
     margin-right: 10px;
     display: block;
-    color: $black;
+    color: $primary;
     position: relative;
     height: 20px;
     .info {
@@ -43,23 +42,17 @@ a.loading-onebox {
   .onebox-result-body {
     padding-top: 5px;
     img {
-      max-width:200px;
+      max-height: 80%;
+      max-width: 25%;
+      height: auto;
+      float: left;
+      margin-right: 10px;
     }
     h3, h4 {
       margin: 0px !important;
     }
-    img.thumbnail {
-      max-width: 25%;
-      height: auto;
-    }
     code {
       max-height: 400px;
-    }
-    img {
-      max-width: 30%;
-      max-height: 80%;
-      float: left;
-      margin-right: 10px;
     }
     .metrics {
       clear: both;
@@ -76,8 +69,8 @@ a.loading-onebox {
 // RottenTomatoes Onebox
 .onebox-result {
   .onebox-result-body {
-    img.verdict { 
-      float: none; 
+    img.verdict {
+      float: none;
       margin-right: 7px;
     }
     img.popcorn {
@@ -87,3 +80,59 @@ a.loading-onebox {
     }
   }
 }
+
+@mixin onebox-favicon($class, $image) {
+  &.#{$class} .source {
+    background-image: image-url("favicons/#{$image}.png");
+    background-repeat: no-repeat;
+    padding-left: 20px;
+  }
+}
+
+aside.onebox {
+  margin-top: 15px;
+  padding: 12px 25px 12px 12px;
+  border-left: 5px solid $primary_light;
+  background: $primary_lightest;
+  font-size: 14px;
+
+  header {
+    a[href] {
+      color: $primary;
+      text-decoration: none;
+    }
+  }
+
+  @include onebox-favicon('stackexchange', 'stackexchange');
+  @include onebox-favicon('twitterstatus', 'twitter');
+  @include onebox-favicon('wikipedia', 'wikipedia');
+  @include onebox-favicon('githubblob', 'github');
+
+
+  .onebox-body {
+    clear: both;
+
+    h3 {
+      font-size: 1.17em;
+    }
+
+    a[href] {
+      color: $tertiary_dark;
+      text-decoration: none;
+    }
+
+    a[href]:visited {
+      color: $tertiary_dark;
+    }
+
+    img {
+      max-height: 80%;
+      max-width: 25%;
+      height: auto;
+      float: left;
+      margin-right: 10px;
+    }
+  }
+}
+
+

@@ -55,16 +55,16 @@ Discourse::Application.configure do
   config.handlebars.precompile = true
 
   # allows admins to use mini profiler
-  config.enable_mini_profiler = !ENV["DISABLE_MINI_PROFILER"]
+  config.enable_mini_profiler = GlobalSetting.enable_mini_profiler
 
   # Discourse strongly recommend you use a CDN.
   # For origin pull cdns all you need to do is register an account and configure
-  config.action_controller.asset_host = ENV["CDN_URL"] if ENV["CDN_URL"]
+  config.action_controller.asset_host = GlobalSetting.cdn_url
 
   # a comma delimited list of emails your devs have
   # developers have god like rights and may impersonate anyone in the system
   # normal admins may only impersonate other moderators (not admins)
-  if emails = ENV["DEVELOPER_EMAILS"]
+  if emails = GlobalSetting.developer_emails
     config.developer_emails = emails.split(",")
   end
 

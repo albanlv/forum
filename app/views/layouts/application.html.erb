@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="<%= SiteSetting.default_locale %>">
+<html lang="<%= SiteSetting.default_locale %>" class="<%= html_classes %>">
   <head>
     <meta charset="utf-8">
     <title><%= content_for?(:title) ? yield(:title) + ' - ' + SiteSetting.title : SiteSetting.title %></title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <meta content="<%= @description %>" name="description">
+    <meta content="<%= SiteSetting.site_description %>" name="description">
     <meta content="" name="author">
 
     <%= canonical_link_tag %>
@@ -13,67 +13,59 @@
     <link rel="apple-touch-icon" type="image/png" href="<%=SiteSetting.apple_touch_icon_url%>">
 
     <%= javascript_include_tag "preload_store" %>
-
     <%= javascript_include_tag "locales/#{I18n.locale}" %>
+    <%= javascript_include_tag "vendor" %>
     <%= javascript_include_tag "application" %>
     <%- if staff? %>
       <%= javascript_include_tag "admin"%>
     <%- end %>
 
-    <%= render :partial => "common/discourse_stylesheet" %>
     <%= render :partial => "common/special_font_face" %>
+    <%= render :partial => "common/discourse_stylesheet" %>
 
     <%= discourse_csrf_tags %>
+
+    <%= raw SiteContent.content_for(:head) %>
+
+    <%= render_google_universal_analytics_code %>
 
     <%= yield :head %>
   </head>
 
-  <body class="css-loading">
+  <body>
     <!--[if IE 9]><script type="text/javascript">ie = "new";</script><![endif]-->
 
-    <div id="js-app">
-      <%- unless customization_disabled? %>
-        <script>
-          if(window.isMobile){
-            document.write("<div id='custom-mobile-header'>");
-            document.write(<%= SiteCustomization.custom_header(session[:preview_style], :mobile).inspect.gsub("<", '\x3c').html_safe %>);
-            document.write("</div>");
-          } else {
-            document.write("<div id='custom-desktop-header'>");
-            document.write(<%= SiteCustomization.custom_header(session[:preview_style], :desktop).inspect.gsub("<", '\x3c').html_safe %>);
-            document.write("</div>");
-          }
-        </script>
-      <%- end %>
+    <%- unless customization_disabled? %>
+      <%= SiteCustomization.custom_header(session[:preview_style], mobile_view? ? :mobile : :desktop) %>
+    <%- end %>
 
-      <section id='main'>
-      </section>
+    <section id='main'>
+    </section>
 
-      <% unless current_user %>
-        <form id='hidden-login-form' method="post" action="<%=login_path%>" style="display: none;">
-          <input name="username" type="text"     id="signin_username">
-          <input name="password" type="password" id="signin_password">
-          <input name="redirect" type="hidden">
-          <input type="submit" id="signin-button" value="Log In">
-        </form>
+    <% unless current_user %>
+      <form id='hidden-login-form' method="post" action="<%=login_path%>" style="display: none;">
+        <input name="username" type="text"     id="signin_username">
+        <input name="password" type="password" id="signin_password">
+        <input name="redirect" type="hidden">
+        <input type="submit" id="signin-button" value="Log In">
+      </form>
+    <% end %>
+
+    <%- if @preloaded.present? %>
+      <script>
+      <%- @preloaded.each do |key, json| %>
+        PreloadStore.store("<%= key %>",<%= escape_unicode(json) %>);
       <% end %>
+      </script>
+    <%- end %>
 
-      <%- if @preloaded.present? %>
-        <script>
-        <%- @preloaded.each do |key, json| %>
-          PreloadStore.store("<%= key %>",<%= escape_unicode(json) %>);
-        <% end %>
-        </script>
-      <%- end %>
+    <%= yield :data %>
 
-      <%= yield :data %>
+    <footer id='bottom'></footer>
 
-      <footer id='bottom'></footer>
+    <%= render :partial => "common/discourse_javascript" %>
 
-      <%= render :partial => "common/discourse_javascript" %>
-
-      <%= render_google_analytics_code %>
-    </div>
+    <%= render_google_analytics_code %>
 
     <noscript data-path="<%= request.env['PATH_INFO'] %>">
       <header class="d-header">
