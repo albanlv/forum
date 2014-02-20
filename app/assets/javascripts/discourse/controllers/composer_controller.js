@@ -304,10 +304,8 @@ Discourse.ComposerController = Discourse.Controller.extend({
       if (composer) {
         composer.set('topic', opts.topic);
       }
-    }
-
-    if ( !composer ) {
-      composer = Discourse.Composer.create();
+    } else {
+      composer = composer || Discourse.Composer.create();
       composer.open(opts);
     }
 

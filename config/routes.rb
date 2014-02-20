@@ -1,6 +1,5 @@
 require "sidekiq/web"
 require_dependency "scheduler/web"
-
 require_dependency "admin_constraint"
 require_dependency "staff_constraint"
 require_dependency "homepage_constraint"
@@ -8,12 +7,15 @@ require_dependency "homepage_constraint"
 # This used to be User#username_format, but that causes a preload of the User object
 # and makes Guard not work properly.
 USERNAME_ROUTE_FORMAT = /[A-Za-z0-9\_]+/ unless defined? USERNAME_ROUTE_FORMAT
+BACKUP_ROUTE_FORMAT = /\d{4}(-\d{2}){2}-\d{6}\.tar\.gz/i unless defined? BACKUP_ROUTE_FORMAT
 
 Discourse::Application.routes.draw do
 
   match "/404", to: "exceptions#not_found", via: [:get, :post]
 
   mount Sidekiq::Web => "/sidekiq", constraints: AdminConstraint.new
+
+  get "site" => "site#index"
 
   resources :forums
   get "srv/status" => "forums#status"
@@ -67,7 +69,9 @@ Discourse::Application.routes.draw do
     resources :email do
       collection do
         post "test"
-        get "logs"
+        get "all"
+        get "sent"
+        get "skipped"
         get "preview-digest" => "email#preview_digest"
       end
     end
@@ -88,13 +92,15 @@ Discourse::Application.routes.draw do
     resources :site_customizations, constraints: AdminConstraint.new
     resources :site_contents, constraints: AdminConstraint.new
     resources :site_content_types, constraints: AdminConstraint.new
-    resources :export, constraints: AdminConstraint.new
+
     get "version_check" => "versions#show"
+
     resources :dashboard, only: [:index] do
       collection do
         get "problems"
       end
     end
+
     resources :api, only: [:index], constraints: AdminConstraint.new do
       collection do
         post "key" => "api#create_master_key"
@@ -102,6 +108,24 @@ Discourse::Application.routes.draw do
         delete "key" => "api#revoke_key"
       end
     end
+
+    resources :backups, only: [:index, :create], constraints: AdminConstraint.new do
+      member do
+        get "" => "backups#show", constraints: { id: BACKUP_ROUTE_FORMAT }
+        delete "" => "backups#destroy", constraints: { id: BACKUP_ROUTE_FORMAT }
+        post "restore" => "backups#restore", constraints: { id: BACKUP_ROUTE_FORMAT }
+      end
+      collection do
+        get "logs" => "backups#logs"
+        get "status" => "backups#status"
+        get "cancel" => "backups#cancel"
+        get "rollback" => "backups#rollback"
+        put "readonly" => "backups#readonly"
+      end
+    end
+
+    get "memory_stats"=> "diagnostics#memory_stats", constraints: AdminConstraint.new
+
   end # admin namespace
 
   get "email_preferences" => "email#preferences_redirect", :as => "email_preferences_redirect"
@@ -131,6 +155,7 @@ Discourse::Application.routes.draw do
   get "faq" => "static#show", id: "faq"
   get "tos" => "static#show", id: "tos"
   get "privacy" => "static#show", id: "privacy"
+  get "signup" => "list#latest"
 
   get "users/search/users" => "users#search_users"
   get "users/password-reset/:token" => "users#password_reset"
@@ -168,7 +193,7 @@ Discourse::Application.routes.draw do
   resources :groups do
     get 'members'
     get 'posts'
-    get 'posts_count'
+    get 'counts'
   end
 
   resources :posts do

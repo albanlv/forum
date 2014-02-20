@@ -28,7 +28,7 @@ WHERE table_schema='public' and (data_type like 'char%' or data_type like 'text%
     results.each do |result|
       table_name = result["table_name"]
       column_name = result["column_name"]
-      puts "Reampping #{table_name} #{column_name}"
+      puts "Remapping #{table_name} #{column_name}"
       result = cnn.async_exec("UPDATE #{table_name}
                       SET #{column_name} = replace(#{column_name}, $1, $2)
                       WHERE NOT #{column_name} IS NULL
@@ -38,33 +38,50 @@ WHERE table_schema='public' and (data_type like 'char%' or data_type like 'text%
 
   end
 
-  desc "export", "Export a Discourse backup"
-  def export(filename=nil)
+  desc "backup", "Backup a discourse forum"
+  def backup(filename = nil)
     load_rails
+    require "backup_restore"
+    require "export/exporter"
 
-    filename = File.expand_path(filename) if filename
-    puts 'Starting export...'
-    output_filename = Jobs::Exporter.new.execute( format: :json, filename: filename)
-    puts 'Export done.'
-    puts "Output file is in: #{output_filename}", ''
+    puts "Starting export..."
+    backup = Export::Exporter.new(Discourse.system_user.id).run
+    if filename.present?
+      puts "Moving '#{backup}' to '#{filename}'"
+      FileUtils.mv(backup, filename)
+      backup = filename
+    end
+    puts "Export done."
+    puts "Output file is in: #{backup}", ""
   end
 
-  desc "import", "Import a Discourse backup"
-  def import(filename)
+  desc "export", "Backup a Discourse forum"
+  def export
+    backup
+  end
+
+  desc "restore", "Restore a Discourse backup"
+  def restore(filename)
     load_rails
+    require "backup_restore"
+    require "import/importer"
 
     begin
-      filename = File.expand_path(filename)
-      puts "Starting import: #{filename}"
-      Jobs::Importer.new.execute( format: :json, filename: filename)
-      puts 'Import done.'
+      puts "Starting restore: #{filename}"
+      Import::Importer.new(Discourse.system_user.id, filename).run
+      puts 'Restore done.'
     rescue Import::FilenameMissingError
       puts '', 'The filename argument was missing.', ''
       usage
     rescue Import::ImportDisabledError
-      puts '', 'Imports are not allowed.', 'An admin needs to set allow_import to true in the site settings before imports can be run.', ''
-      puts 'Import cancelled.', ''
+      puts '', 'Restore are not allowed.', 'An admin needs to set allow_restore to true in the site settings before restores can be run.', ''
+      puts 'Restore cancelled.', ''
     end
+  end
+
+  desc "import", "Restore a Discourse backup"
+  def import(filename)
+    restore(filename)
   end
 
   desc "migrate", "Make sure all the posts are pointing to the new domain"

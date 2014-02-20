@@ -24,6 +24,9 @@ basic:
   default_locale:
     default: 'en'
     enum: 'LocaleSiteSetting'
+  allow_user_locale:
+    client: true
+    default: false
   ga_tracking_code:
     client: true
     default: ''
@@ -213,6 +216,7 @@ posting:
 email:
   email_time_window_mins: 10
   email_posts_context: 5
+  digest_min_excerpt_length: 100
   default_digest_email_frequency:
     default: 7
     enum: 'DigestEmailSiteSetting'
@@ -408,7 +412,9 @@ uncategorized:
   summary_likes_required: 1
   summary_percent_filter: 20
   send_welcome_message: true
-  allow_import: false
+  allow_restore:
+    client: true
+    default: false
   educate_until_posts:
     client: true
     default: 2
@@ -434,4 +440,5 @@ uncategorized:
   meta_category_id:
     default: -1
     hidden: true
+  min_posts_for_search_in_topic: 10
 
