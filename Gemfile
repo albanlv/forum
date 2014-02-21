@@ -188,7 +188,7 @@ end
 
 # Gem that enables support for plugins. It is required.
 # TODO: does this really need to be a gem ?
-# gem 'discourse_plugin', path: 'vendor/gems/discourse_plugin'
+gem 'discourse_plugin', path: 'vendor/gems/discourse_plugin'
 
 # this is an optional gem, it provides a high performance replacement
 # to String#blank? a method that is called quite frequently in current
