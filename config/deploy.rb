@@ -18,7 +18,7 @@ task :environment do
   queue %{
     echo "-----> Loading guns and chruby"
     #{echo_cmd %{source #{chruby}}}
-    #{echo_cmd %{chruby ruby-1.9.3-p392}}
+    #{echo_cmd %{chruby ruby-2.1.0}}
   }
   queue %{
     echo "-----> Setting RAILS_ROOT and preparing the carrots"
