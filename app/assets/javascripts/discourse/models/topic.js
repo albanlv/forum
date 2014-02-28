@@ -144,6 +144,7 @@ Discourse.Topic = Discourse.Model.extend({
   archetypeObject: function() {
     return Discourse.Site.currentProp('archetypes').findProperty('id', this.get('archetype'));
   }.property('archetype'),
+
   isPrivateMessage: Em.computed.equal('archetype', 'private_message'),
 
   toggleStatus: function(property) {
@@ -419,6 +420,13 @@ Discourse.Topic.reopenClass({
         topic_ids: topics.map(function(t) { return t.get('id'); }),
         operation: operation
       }
+    });
+  },
+
+  bulkOperationByFilter: function(filter, operation) {
+    return Discourse.ajax("/topics/bulk", {
+      type: 'PUT',
+      data: { filter: filter, operation: operation }
     });
   }
 

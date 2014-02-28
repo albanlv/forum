@@ -93,12 +93,12 @@ de:
     joined: "Beigetreten"
     admin_title: "Administration"
     flags_title: "Meldungen"
-    show_more: "zeige mehr"
+    show_more: "Mehr anzeigen"
     links: Links
     faq: "FAQ"
     privacy_policy: "Datenschutzrichtlinie"
-    mobile_view: "Mobilansicht"
-    desktop_view: "Desktopansicht"
+    mobile_view: "Mobile Ansicht"
+    desktop_view: "Desktop Ansicht"
     you: "Du"
     or: "oder"
     now: "gerade eben"
@@ -131,13 +131,13 @@ de:
       title: "Vorgeschlagene Themen"
 
     bookmarks:
-      not_logged_in: "Entschuldige, man muss angemeldet sein, um Lesezeichen zu setzen."
+      not_logged_in: "Entschuldige, du musst angemeldet sein, um Lesezeichen zu setzen."
       created: "Ein Lesezeichen zu diesem Beitrag wurde gesetzt."
       not_bookmarked: "Du hast diesen Beitrag gelesen; klicke, um ein Lesezeichen zu setzen."
       last_read: "Dies ist der letzte Beitrag, den Du gelesen hast."
 
     new_topics_inserted: "{{count}} neue Themen."
-    show_new_topics: "Hier klicken zum Anzeigen."
+    show_new_topics: "Klicken zum Anzeigen."
     preview: "Vorschau"
     cancel: "Abbrechen"
 
@@ -152,11 +152,11 @@ de:
     choose_topic:
       none_found: "Keine Themen gefunden."
       title:
-        search: "Suche Thema anhand Name, URL oder ID:"
-        placeholder: "Titel des Themas hier hinschreiben"
+        search: "Suche nach Thema anhand Name, URL oder ID:"
+        placeholder: "Titel des Themas eingeben"
 
     user_action:
-      user_posted_topic: "<a href='{{userUrl}}'>{{user}}</a> hast auf <a href='{{topicUrl}}'>das Thema</a> geantwortet"
+      user_posted_topic: "<a href='{{userUrl}}'>{{user}}</a> hat auf <a href='{{topicUrl}}'>das Thema</a> geantwortet"
       you_posted_topic: "<a href='{{userUrl}}'>Du</a> hast auf <a href='{{topicUrl}}'>das Thema</a> geantwortet"
       user_replied_to_post: "<a href='{{userUrl}}'>{{user}}</a> hat auf <a href='{{postUrl}}'>{{post_number}}</a> geantwortet"
       you_replied_to_post: "<a href='{{userUrl}}'>Du</a> hast auf <a href='{{postUrl}}'>{{post_number}}</a> geantwortet"
@@ -165,7 +165,7 @@ de:
 
       user_mentioned_user: "<a href='{{user1Url}}'>{{user}}</a> hat <a href='{{user2Url}}'>{{another_user}}</a> erwähnt"
       user_mentioned_you: "<a href='{{user1Url}}'>{{user}}</a> hat <a href='{{user2Url}}'>dich</a> erwähnt"
-      you_mentioned_user: "<a href='{{user1Url}}'>Du</a> hat <a href='{{user2Url}}'>{{another_user}}</a> erwähnt"
+      you_mentioned_user: "<a href='{{user1Url}}'>Du</a> hast <a href='{{user2Url}}'>{{another_user}}</a> erwähnt"
 
       posted_by_user: "Geschrieben von <a href='{{userUrl}}'>{{user}}</a>"
       posted_by_you: "Geschrieben von <a href='{{userUrl}}'>dir</a>"
@@ -176,10 +176,10 @@ de:
       alias_levels:
         title: "Wer kann diese Gruppe als Alias verwenden?"
         nobody: "Niemand"
-        only_admins: "Nur Administatoren"
+        only_admins: "Nur Administratoren"
         mods_and_admins: "Nur Moderatoren und Administratoren"
         members_mods_and_admins: "Nur Gruppenmitglieder, Moderatoren und Administratoren"
-        everyone: "Everyone"
+        everyone: "Jeder"
 
     user_action_groups:
       "1": "„Gefällt mir“ gegeben"
@@ -199,12 +199,12 @@ de:
       all: "Alle Kategorien"
       all_subcategories: "Alle Unterkategorien"
       no_subcategory: "Keine Unterkategorie"
-      category: "Katgorie"
+      category: "Kategorie"
       posts: "Neue Beiträge"
       topics: "Neue Themen"
       latest: "Neueste"
       latest_by: "latest by"
-      toggle_ordering: "Ordnungsreihenfolge ändern"
+      toggle_ordering: "Reihenfolge ändern"
       subcategories: "Unterkategorien:"
       topic_stats: "Die Anzahl der Themen."
       topic_stat_sentence:
@@ -228,7 +228,7 @@ de:
       preferences: "Einstellungen"
       bio: "Über mich"
       invited_by: "Eingeladen von"
-      trust_level: "Stufe"
+      trust_level: "Vertrauensstufe"
       notifications: "Benachrichtigungen"
       dynamic_favicon: "Zeige eingehende Nachrichten im Favicon"
       external_links_in_new_tab: "Öffne alle externen Links in neuen Tabs"
@@ -237,7 +237,7 @@ de:
       moderator: "{{user}} ist Moderator"
       admin: "{{user}} ist Administrator"
       deleted: "(gelöscht)"
-      suspended_notice: "Diser Benutzer ist bis zum {{date}} susperndiert."
+      suspended_notice: "Dieser Benutzer ist bis zum {{date}} suspendiert."
       suspended_reason: "Grund: "
       watched_categories: "Beobachten"
       watched_categories_instructions: "Das selbe wie 'verfolgen', zusätzlich wirst du über alle neuen Beiträge und Themen informiert."
@@ -269,9 +269,9 @@ de:
         invalid: "Dieser Benutzername ist ungültig, sie dürfen nur aus Zahlen und Buchstaben bestehen."
 
       change_email:
-        title: "Mailadresse ändern"
-        taken: "Entschuldige, diese Mailadresse ist nicht verfügbar."
-        error: "Beim ändern der Mailadresse ist ein Fehler aufgetreten. Möglicherweise wird diese Adresse schon benutzt."
+        title: "E-Mailadresse ändern"
+        taken: "Entschuldige, diese E-Mailadresse ist nicht verfügbar."
+        error: "Beim Ändern der E-Mailadresse ist ein Fehler aufgetreten. Möglicherweise wird diese Adresse schon benutzt."
         success: "Eine Bestätigungsmail wurde an diese Adresse verschickt. Bitte folge den darin enthaltenen Anweisungen."
 
       change_avatar:
@@ -281,14 +281,14 @@ de:
         uploaded_avatar: "Eigenes Bild"
         uploaded_avatar_empty: "Eigenes Bild hinzufügen"
         upload_title: "Lade dein Bild hoch"
-        image_is_not_a_square: "Achtung: wir haben den Bild angeschnitten, da es nicht rechteckig war."
+        image_is_not_a_square: "Achtung: wir haben dein Bild zugeschnitten, da es nicht quadratisch war."
 
       email:
         title: "Mail"
-        instructions: "Deine Mailadresse wird niemals öffentlich angezeigt."
-        ok: "In Ordnung. Wir schicken eine Mail zur Bestätigung."
-        invalid: "Bitte gib eine gültige Mailadresse ein."
-        authenticated: "Dein Mailadresse wurde von {{provider}} authentisiert."
+        instructions: "Deine E-Mailadresse wird niemals öffentlich angezeigt."
+        ok: "In Ordnung. Wir schicken eine E-Mail zur Bestätigung."
+        invalid: "Bitte gib eine gültige E-Mailadresse ein."
+        authenticated: "Deine E-Mailadresse wurde von {{provider}} authentisiert."
         frequency: "Wir mailen nur, falls Du längere Zeit nicht hier gewesen bist und wir etwas Neues für Dich haben."
 
       name:
@@ -307,28 +307,28 @@ de:
         too_short: "Der Benutzername ist zu kurz."
         too_long: "Der Benutzername ist zu lang."
         checking: "Prüfe Verfügbarkeit des Benutzernamens..."
-        enter_email: 'Benutzername gefunden. Gib die zugehörige Mailadresse ein.'
+        enter_email: 'Benutzername gefunden. Gib die zugehörige E-Mailadresse ein.'
         prefilled: "Die E-Mail gleicht dem eingetragenen Nutzernamen."
 
       password_confirmation:
         title: "Passwort wiederholen"
 
       last_posted: "Letzter Beitrag"
-      last_emailed: "Letzte Mail"
+      last_emailed: "Letzte E-Mail"
       last_seen: "Zuletzt gesehen"
       created: "Mitglied seit"
       log_out: "Abmelden"
       website: "Webseite"
-      email_settings: "Mail"
+      email_settings: "E-Mail"
       email_digests:
-        title: "Schicke eine Mail mit Neuigkeiten, wenn ich die Seite länger nicht besuche"
+        title: "Schicke eine E-Mail mit Neuigkeiten, wenn ich die Seite länger nicht besuche"
         daily: "täglich"
         weekly: "wöchentlich"
         bi_weekly: "alle zwei Wochen"
 
-      email_direct: "Schicke eine Mail, wenn jemand mich zitiert, auf meine Beiträge antwortet oder meinen @Namen erwähnt."
-      email_private_messages: "Schicke eine Mail, wenn jemand mir eine private Nachricht sendet."
-      email_always: "Schicke mir eine Mail, auch wenn ich aktiv im Forum bin"
+      email_direct: "Schicke eine E-Mail, wenn jemand mich zitiert, auf meine Beiträge antwortet oder meinen @Namen erwähnt."
+      email_private_messages: "Schicke eine E-Mail, wenn jemand mir eine private Nachricht sendet."
+      email_always: "Schicke mir eine E-Mail, auch wenn ich aktiv im Forum bin"
 
       other_settings: "Sonstiges"
       categories_settings: "Katgorien"
@@ -431,26 +431,26 @@ de:
     username: 'Benutzername'
     last_seen: 'Zuletzt gesehen'
     created: 'Erstellt'
-    trust_level: 'Stufe'
+    trust_level: 'Vertrauensstufe'
 
     create_account:
       title: "Konto erstellen"
       action: "Jetzt erstellen!"
       invite: "Hast Du schon ein Benutzerkonto?"
-      failed: 'Etwas ist schief gelaufen, vielleicht gibt es die Mailadresse schon. Versuche den "Passwort vergessen"-Link.'
+      failed: 'Etwas ist schief gelaufen, vielleicht gibt es die E-Mailadresse schon. Versuche den "Passwort vergessen"-Link.'
 
     forgot_password:
       title: "Passwort vergessen"
       action: "Ich habe mein Passwort vergessen"
-      invite: "Gib deinen Nutzernamen ein und wir schicken Dir eine Mail zum Zurücksetzen des Passworts."
+      invite: "Gib deinen Nutzernamen ein und wir schicken Dir eine E-Mail zum Zurücksetzen des Passworts."
       reset: "Passwort zurücksetzen"
-      complete: "Du solltest bald eine Mail mit Instruktionen zum Zurücksetzen des Passworts erhalten."
+      complete: "Du solltest bald eine E-Mail mit Instruktionen zum Zurücksetzen des Passworts erhalten."
 
     login:
       title: "Anmelden"
       username: "Login"
       password: "Passwort"
-      email_placeholder: "Mailadresse oder Benutzername"
+      email_placeholder: "E-Mailadresse oder Benutzername"
       error: "Unbekannter Fehler"
       reset_password: 'Passwort zurücksetzen'
       logging_in: "Anmeldung läuft..."
@@ -512,7 +512,7 @@ de:
       users_placeholder: "Nutzer hinzufügen"
       title_placeholder: "Gib hier den Titel ein. In einem Satz: Worum geht es?"
       edit_reason_placeholder: "warum editierst du?"
-      show_edit_reason: "(editiergrund hinzufügen)"
+      show_edit_reason: "(Editiergrund hinzufügen)"
       reply_placeholder: "Gib hier deinen Text ein. Benutze Markdown oder BBCode zur Textformatierung. Um ein Bild einzufügen ziehe es hierhin oder füge es per Tastenkombination ein."
       view_new_post: "Betrachte deinen neuen Beitrag."
       saving: "Speichert..."
@@ -556,7 +556,7 @@ de:
 
     notifications:
       title: "Benachrichtigung über @Name-Erwähnungen, Antworten auf deine Themen und Beiträge, Private Nachrichten, etc."
-      none: "Du hast aktuell keine Benachrichtiungen."
+      none: "Du hast aktuell keine Benachrichtigungen."
       more: "Zeige frühere Benachrichtigungen"
       mentioned: "<span title='mentioned' class='icon'>@</span> {{username}} {{link}}"
       quoted: "<i title='quoted' class='fa fa-quote-right'></i> {{username}} {{link}}"
@@ -568,7 +568,7 @@ de:
       invited_to_private_message: "<i class='fa fa-envelope-o' title='private message'></i> {{username}} hat sich zu einem privaten Gespräch eingeladen: {{link}}"
       invitee_accepted: "<i title='accepted your invitation' class='fa fa-sign-in'></i> {{username}} hat deine Einladung akzeptiert"
       moved_post: "<i title='moved post' class='fa fa-arrow-right'></i> {{username}} hat einen Beitrag nach {{link}} verschoben"
-      total_flagged: "total markierte Einträge"
+      total_flagged: "total gemeldete Einträge"
 
     upload_selector:
       title: "Bild hochladen"
@@ -661,7 +661,7 @@ de:
         title: "Thema nicht gefunden"
         description: "Entschuldige, wir konnten das Thema nicht finden. Möglicherweise wurde es von einem Moderator entfernt."
       unread_posts:
-        one: "Du hast einen ungelesenen Beiträg zu diesem Thema"
+        one: "Du hast einen ungelesenen Beitrag zu diesem Thema"
         other: "Du hast {{count}} ungelesene Beiträge zu diesem Thema"
       new_posts:
         one: "Es gibt einen neuen Beitrag zu diesem Thema seit Du es das letzte mal gelesen hast"
@@ -796,7 +796,7 @@ de:
         action: 'Einladung senden'
         help: 'Sendet Freunden eine Einladung, so dass mit einem Klick auf dieses Thema antworten können.'
         to_topic: "Wir senden deinem Freund eine kurze Email, die ihm ermöglicht direkt auf dieses Thema zu antworten. Hierfür ist kein Login erforderlich."
-        to_forum: "Wir senden deinem Freund eine kurze Email, die ihm ermlicht dem Forum beizutreten"
+        to_forum: "Wir senden deinem Freund eine kurze Email, die ihm ermöglicht dem Forum beizutreten"
 
         email_placeholder: 'Mailadresse'
         success: "Danke! Wir haben deine Einladung an <b>{{email}}</b> verschickt. Wir lassen Dich wissen, sobald die Einladung eingelöst wird. In deinem Nutzerprofil kannst Du alle deine Einladungen überwachen."
@@ -820,8 +820,8 @@ de:
           other: "Du bist dabei, ein neues Thema zu erstellen und die <b>{{count}}</b> ausgewählten Beiträge dorthin zu verschieben."
 
       merge_topic:
-        title: "Themes zusammenführen"
-        action: "Themes zusammenführen"
+        title: "Themen zusammenführen"
+        action: "Themen zusammenführen"
         error: "Beim Zusammenführen der Themen ist ein Fehler passiert."
         instructions:
           one: "Bitte wähle das Thema in welches du den Beitrag verschieben möchtest."
@@ -913,7 +913,7 @@ de:
           inappropriate: "Meldung widerrufen"
           bookmark: "Lesezeichen entfernen"
           like: "Gefällt mir nicht mehr"
-          vote: "Stimme wiederrufen"
+          vote: "Stimme widerrufen"
         people:
           off_topic: "{{icons}} haben es als am Thema vorbei gemeldet"
           spam: "{{icons}} haben es als Werbung gemeldet"
@@ -922,7 +922,7 @@ de:
           notify_moderators_with_url: "{{icons}} <a href='{{postUrl}}'>haben es den Moderatoren gemeldet</a>"
           notify_user: "{{icons}} haben eine private Nachricht gesendet"
           notify_user_with_url: "{{icons}} haben eine  <a href='{{postUrl}}'>private Nachricht</a> gesendet"
-          bookmark: "{{icons}} haben dies als Lesezeichen"
+          bookmark: "{{icons}} haben das als Lesezeichen"
           like: "{{icons}} gefällt dies"
           vote: "{{icons}} haben dafür gestimmt"
         by_you:
@@ -1143,20 +1143,20 @@ de:
         help: "Aktuelle Themen in der Kategorie {{categoryName}}"
       top:
         title: "Topliste"
-        help: "Eine auswahl der besten Themen im letzten Jahr, Monat, Woche oder Tag"
+        help: "Eine Auswahl der besten Themen im letzten Jahr, Monat, Woche oder Tag"
         yearly:
-          title: "Top Jährlich"
+          title: "Top jährlich"
         monthly:
-          title: "Top Monatlich"
+          title: "Top monatlich"
         weekly:
-          title: "Top Wöchtenlich"
+          title: "Top wöchentlich"
         daily:
-          title: "Top Täglich"
+          title: "Top täglich"
         this_year: "Dieses Jahr"
         this_month: "Dieser Monat"
         this_week: "Diese Woche"
         today: "Heute"
-        other_periods: "weitere top-Themen"
+        other_periods: "weitere Top-Themen"
         redirect_reasons:
           new_user: "Willkommen! Weil du neu bist, dachten wir uns, du möchtest dir vielleicht erst die Top-Themen ansehen."
           not_seen_in_a_month: "Willkommen zurück! Möchtest du dir vielleicht die neuesten Top-Themen ansehen?"
@@ -1263,7 +1263,7 @@ de:
         name_placeholder: "Gruppenname, keine Leerzeichen, gleiche Regel wie beim Benutzernamen"
         about: "Hier kannst du Gruppenzugehörigkeiten und Gruppennamen bearbeiten."
         delete: "Löschen"
-        delete_confirm: "Diese gruppe löschen?"
+        delete_confirm: "Diese Gruppe löschen?"
         delete_failed: "Gruppe konnte nicht gelöscht werden. Wenn dies eine automatische Gruppe ist, kann sie nicht gelöscht werden."
 
       api:
@@ -1276,7 +1276,7 @@ de:
         regenerate: "API-Schlüssel neu generieren"
         revoke: "Widerrufen"
         confirm_regen: "Bist du sicher, dass du den API Key mit einem neuen ersetzen willst?"
-        confirm_revoke: "Bist du dir sicher, dass du den API Key wiederrufen willst?"
+        confirm_revoke: "Bist du dir sicher, dass du den API Key widerrufen willst?"
         info_html: "Dein API-Schlüssel erlaubt Dir das Erstellen und Bearbeiten von Themen via JSON aufrufen."
         all_users: "Alle Benutzer"
         note_html: "Behalte deinen <strong>Schlüssel</strong> geheim, jeder Benutzer mit diesem Schlüssel kann beliebige Beiträge unter jedem Benutzer im Forum erstellen."
@@ -1317,7 +1317,7 @@ de:
         format: "Format"
         html: "html"
         text: "text"
-        last_seen_user: "Letzer Benutzer:"
+        last_seen_user: "Letzter Benutzer:"
         reply_key: "Antwort-Schlüssel"
 
       logs:
@@ -1335,7 +1335,7 @@ de:
           do_nothing: "nichts machen"
         staff_actions:
           title: "Mitarbeiter Aktion"
-          instructions: "Kilcke auf die Benutzernamen und Aktionen um die Liste zu filtern. Klicke den Avatar um die Benutzerseite zu sehen."
+          instructions: "Klicke auf die Benutzernamen und Aktionen um die Liste zu filtern. Klicke den Avatar um die Benutzerseite zu sehen."
           clear_filters: "Alles anzeigen"
           staff_user: "Mitarbeiter"
           target_user: "Zielnutzer"
@@ -1353,15 +1353,15 @@ de:
           actions:
             delete_user: "Benutzer löschen"
             change_trust_level: "Vertrauensstufe ändern"
-            change_site_setting: "Seiten Einstellungen ändern"
-            change_site_customization: "Seiten Anpassungen ändern"
-            delete_site_customization: "Seiten Anpassungen löschen"
+            change_site_setting: "Seiteneinstellungen ändern"
+            change_site_customization: "Seitenanpassungen ändern"
+            delete_site_customization: "Seitenanpassungen löschen"
             suspend_user: "gesperrter Benutzer"
             unsuspend_user: "ungesperrter Benutzer"
         screened_emails:
-          title: "Geschützte Mails"
-          description: "Wen jemand ein Konto erstellt, werden die folgenden Mail überprüft und die Registration blockiert, oder eine andere Aktion ausgeführt."
-          email: "Mail Adresse"
+          title: "Geschützte E-Mails"
+          description: "Wen jemand ein Konto erstellt, werden die folgenden E-Mail überprüft und die Registration blockiert, oder eine andere Aktion ausgeführt."
+          email: "E-Mailadresse"
         screened_urls:
           title: "Geschützte URLs"
           description: "Die aufgelisteten URLs wurden in Beiträgen von identifizierten Spammen verwendet."
@@ -1369,7 +1369,7 @@ de:
           domain: "Domain"
         screened_ips:
           title: "Geschützte IPs"
-          description: 'IP-Adressen die beobachtet werden wollen. Benuzte "Erlauben" um IPs zu whitelisten.'
+          description: 'IP-Adressen die beobachtet werden wollen. Benutze "Erlauben" um IPs zu whitelisten.'
           delete_confirm: "Sicher, dass du die Rege für %{ip_address} aufheben willst?"
           actions:
             block: "Blockieren"
@@ -1468,8 +1468,7 @@ de:
         approve: 'Genehmigen'
         approved_by: "genehmigt von"
         approve_success: "Benutzer freigeschalten und Mail mit den Anweisungen zur Aktivierung gesendet."
-        approve_bulk_success: "Erfolg! Alle ausgewählten Benutzer wurden freigeschalten und
-          benachrichtigt."
+        approve_bulk_success: "Erfolgreich! Alle ausgewählten Benutzer wurden freigeschaltet undbenachrichtigt."
         time_read: "Lesezeit"
         delete: Benutzer löschen
         delete_forbidden:
@@ -1494,11 +1493,11 @@ de:
         block_explanation: "Ein geblockter Benutzer kann keine Themen erstellen oder Beiträge veröffentlichen."
         trust_level_change_failed: "Beim Wechsel der Vertrauensstufe ist ein Fehler aufgetreten."
         suspend_modal_title: "Gesperrter Benutzer"
-        trust_level_2_users: "Trust Level 2 Benutzer"
-        trust_level_3_requirements: "Trust Level 3 Vorraussetzungen"
+        trust_level_2_users: "Vertrauensstufe 2 Benutzer"
+        trust_level_3_requirements: "Vertrauensstufe 3 Vorraussetzungen"
         tl3_requirements:
-          title: "Vorraussetzungen für Trust Level 3"
-          table_title: "In den lezten 100 Tagen:"
+          title: "Vorraussetzungen für Vertrauensstufe 3"
+          table_title: "In den letzten 100 Tagen:"
           value_heading: "Wert"
           requirement_heading: "Vorraussetzung"
           visits: "Visits"
@@ -1507,8 +1506,8 @@ de:
           topics_replied_to: "Auf Themen geantwortet"
           quality_content: "Qualitätscontent"
           reading: "Gelesen"
-          site_promotion: "Site Promotion"
-          flagged_posts: "Beiträge Geflaggt"
+          site_promotion: "Werbung"
+          flagged_posts: "Beiträge gemeldet"
 
       site_content:
         none: "Wähle einen Inhaltstyp um mit dem Bearbeiten zu beginnen."
@@ -1524,26 +1523,26 @@ de:
         clear_filter: "Zurücksetzen"
         categories:
           all_results: 'Alle'
-          required: 'Benötgt'
+          required: 'Benötigt'
           basic: 'Basissetup'
           users: 'Benutzer'
           posting: 'Beiträge'
-          email: 'Email'
+          email: 'E-Mail'
           files: 'Dateien'
-          trust: 'Trust Levels'
+          trust: 'Vertrauensstufe'
           security: 'Sicherheit'
           seo: 'SEO'
           spam: 'Spam'
-          rate_limits: 'Rate Limits'
-          developer: 'Developer'
-          embedding: "Embedding"
+          rate_limits: 'Abruflimits'
+          developer: 'Entwickler'
+          embedding: "Einbetten"
           uncategorized: 'Unkategorisiert'
 
     lightbox:
-      download: "download"
+      download: "Download"
 
     keyboard_shortcuts_help:
-      title: 'Keyboard Shortcuts (experimentell)'
+      title: 'Tastaturkürzel (experimentell)'
       jump_to:
         title: 'Springe zu'
         home: '<b>g</b> dann <b>h</b> Home'
@@ -1554,7 +1553,7 @@ de:
         categories: '<b>g</b> dann <b>c</b> Kategorien'
       navigation:
         title: 'Navigation'
-        back: '<b>u</b> Zurük'
+        back: '<b>u</b> Zurück'
         up_down: '<b>k</b>/<b>j</b> Ausgewähltes nach oben/unten bewegen'
         open: '<b>o</b> or <b>Enter</b> Thema öffnen'
         next_prev: '<b>`</b>/<b>~</b> Nächster/Vorheriger Abschnitt'
@@ -1563,20 +1562,20 @@ de:
         create: '<b>c</b> Neues Thema erstellen'
         notifications: '<b>n</b> Notifications öffnen'
         search: '<b>/</b> Suchen'
-        help: '<b>?</b> Tastaturshortcuts Hilfe'
+        help: '<b>?</b> Tastaturkürzel Hilfe'
       actions:
         title: 'Aktionen'
-        star: '<b>f</b> Thema Sternen'
-        share_topic: '<b>s</b> Theima teilen'
-        share_post: '<b>shift s</b> Beitrag teilen'
+        star: '<b>f</b> Thema bewerten'
+        share_topic: '<b>s</b> Thema teilen'
+        share_post: '<b>SHIFT+s</b> Beitrag teilen'
         reply_topic: '<b>r</b> Auf Thema antworten'
-        reply_post: '<b>shift r</b> Auf Beitrag antworten'
+        reply_post: '<b>SHIFT+r</b> Auf Beitrag antworten'
         like: '<b>l</b> Beitrag liken'
-        flag: '<b>!</b> Beitrag flaggen'
-        bookmark: '<b>b</b> Beitrag Bookmarken'
+        flag: '<b>!</b> Beitrag melden'
+        bookmark: '<b>b</b> Lesezeichen auf Beitrag setzen'
         edit: '<b>e</b> Beitrag editieren'
         delete: '<b>d</b> Beitrag löschen'
-        mark_muted: '<b>m</b> dann <b>m</b> Thema auf Ignirieren setzen'
+        mark_muted: '<b>m</b> dann <b>m</b> Thema auf Ignorieren setzen'
         mark_regular: '<b>m</b> dann <b>r</b> Thema auf normal zurücksetzen'
-        mark_tracking: '<b>m</b> dann <b>t</b> Thema auf verfolgt setzen'
+        mark_tracking: '<b>m</b> dann <b>t</b> Thema auf verfolgen setzen'
         mark_watching: '<b>m</b> dann <b>w</b> Thema auf beobachten setzen'

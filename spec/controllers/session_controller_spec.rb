@@ -2,6 +2,95 @@ require 'spec_helper'
 
 describe SessionController do
 
+  describe '.sso_login' do
+
+    before do
+      @sso_url = "http://somesite.com/discourse_sso"
+      @sso_secret = "shjkfdhsfkjh"
+
+      SiteSetting.stubs("enable_sso").returns(true)
+      SiteSetting.stubs("sso_url").returns(@sso_url)
+      SiteSetting.stubs("sso_secret").returns(@sso_secret)
+
+      # We have 2 options, either fabricate an admin or don't
+      # send welcome messages
+      Fabricate(:admin)
+      # skip for now
+      # SiteSetting.stubs("send_welcome_message").returns(false)
+    end
+
+    def get_sso(return_path)
+      nonce = SecureRandom.hex
+      dso = DiscourseSingleSignOn.new
+      dso.nonce = nonce
+      dso.register_nonce(return_path)
+
+      sso = SingleSignOn.new
+      sso.nonce = nonce
+      sso.sso_secret = @sso_secret
+      sso
+    end
+
+    it 'can take over an account' do
+      sso = get_sso("/")
+      user = Fabricate(:user)
+      sso.email = user.email
+      sso.external_id = "abc"
+
+      get :sso_login, Rack::Utils.parse_query(sso.payload)
+
+      response.should redirect_to('/')
+      logged_on_user = Discourse.current_user_provider.new(request.env).current_user
+      logged_on_user.email.should == user.email
+
+      logged_on_user.single_sign_on_record.external_id.should == "abc"
+    end
+
+    it 'allows you to create an account' do
+      sso = get_sso('/a/')
+      sso.external_id = '666' # the number of the beast
+      sso.email = 'bob@bob.com'
+      sso.name = 'Sam Saffron'
+      sso.username = 'sam'
+
+      get :sso_login, Rack::Utils.parse_query(sso.payload)
+      response.should redirect_to('/a/')
+
+      logged_on_user = Discourse.current_user_provider.new(request.env).current_user
+
+      logged_on_user.email.should == 'bob@bob.com'
+      logged_on_user.name.should == 'Sam Saffron'
+      logged_on_user.username.should == 'sam'
+
+      logged_on_user.single_sign_on_record.external_id.should == "666"
+      logged_on_user.active.should == true
+    end
+
+    it 'allows login to existing account with valid nonce' do
+
+      sso = get_sso('/hello/world')
+      sso.external_id = '997'
+
+      user = Fabricate(:user)
+      user.create_single_sign_on_record(external_id: '997', last_payload: '')
+
+      get :sso_login, Rack::Utils.parse_query(sso.payload)
+
+      user.single_sign_on_record.reload
+      user.single_sign_on_record.last_payload.should == sso.unsigned_payload
+
+      response.should redirect_to('/hello/world')
+      logged_on_user = Discourse.current_user_provider.new(request.env).current_user
+
+      user.id.should == logged_on_user.id
+
+      # nonce is bad now
+      get :sso_login, Rack::Utils.parse_query(sso.payload)
+      response.code.should == '500'
+
+    end
+  end
+
   describe '.create' do
 
     let(:user) { Fabricate(:user) }
