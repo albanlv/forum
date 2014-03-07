@@ -7,23 +7,6 @@ describe Topic do
 
   it { should validate_presence_of :title }
 
-  it { should belong_to :category }
-  it { should belong_to :user }
-  it { should belong_to :last_poster }
-  it { should belong_to :featured_user1 }
-  it { should belong_to :featured_user2 }
-  it { should belong_to :featured_user3 }
-  it { should belong_to :featured_user4 }
-
-  it { should have_many :posts }
-  it { should have_many :topic_users }
-  it { should have_many :topic_links }
-  it { should have_many :topic_allowed_users }
-  it { should have_many :allowed_users }
-  it { should have_many :invites }
-  it { should have_many :topic_revisions }
-  it { should have_many :revisions }
-
   it { should rate_limit }
 
   context 'slug' do
@@ -735,10 +718,11 @@ describe Topic do
   end
 
   describe 'revisions' do
-    let(:topic) { Fabricate(:topic) }
+    let(:post) { Fabricate(:post) }
+    let(:topic) { post.topic }
 
     it "has no revisions by default" do
-      topic.revisions.size.should == 1
+      post.revisions.size.should == 0
     end
 
     context 'changing title' do
@@ -749,7 +733,7 @@ describe Topic do
       end
 
       it "creates a new revision" do
-        topic.revisions.size.should == 2
+        post.revisions.size.should == 1
       end
 
     end
@@ -762,7 +746,7 @@ describe Topic do
       end
 
       it "creates a new revision" do
-        topic.revisions.size.should == 2
+        post.revisions.size.should == 1
       end
 
       context "removing a category" do
@@ -771,7 +755,12 @@ describe Topic do
         end
 
         it "creates a new revision" do
-          topic.revisions.size.should == 3
+          post.revisions.size.should == 2
+          last_rev = post.revisions.order(:number).last
+          last_rev.previous("category_id").should == category.id
+          last_rev.current("category_id").should == SiteSetting.uncategorized_category_id
+          post.reload
+          post.version.should == 3
         end
       end
 
@@ -784,7 +773,7 @@ describe Topic do
       end
 
       it "doesn't create a new version" do
-        topic.revisions.size.should == 1
+        post.revisions.size.should == 0
       end
     end
 
@@ -1089,46 +1078,47 @@ describe Topic do
     let(:topic)         { Fabricate.build(:topic) }
     let(:closing_topic) { Fabricate.build(:topic, auto_close_hours: 5) }
     let(:admin)         { Fabricate.build(:user, id: 123) }
+    let(:now)           { Time.zone.local(2013,11,20,8,0) }
 
     before { Discourse.stubs(:system_user).returns(admin) }
 
     it 'can take a number of hours as an integer' do
-      Timecop.freeze(Time.zone.now) do
+      Timecop.freeze(now) do
         topic.set_auto_close(72, admin)
         expect(topic.auto_close_at).to eq(3.days.from_now)
       end
     end
 
     it 'can take a number of hours as a string' do
-      Timecop.freeze(Time.zone.now) do
+      Timecop.freeze(now) do
         topic.set_auto_close('18', admin)
         expect(topic.auto_close_at).to eq(18.hours.from_now)
       end
     end
 
     it "can take a time later in the day" do
-      Timecop.freeze(Time.zone.local(2013,11,20,8,0)) do
+      Timecop.freeze(now) do
         topic.set_auto_close('13:00', admin)
         topic.auto_close_at.should == Time.zone.local(2013,11,20,13,0)
       end
     end
 
     it "can take a time for the next day" do
-      Timecop.freeze(Time.zone.local(2013,11,20,8,0)) do
+      Timecop.freeze(now) do
         topic.set_auto_close('5:00', admin)
         topic.auto_close_at.should == Time.zone.local(2013,11,21,5,0)
       end
     end
 
     it "can take a timestamp for a future time" do
-      Timecop.freeze(Time.zone.local(2013,11,20,8,0)) do
+      Timecop.freeze(now) do
         topic.set_auto_close('2013-11-22 5:00', admin)
         topic.auto_close_at.should == Time.zone.local(2013,11,22,5,0)
       end
     end
 
     it "sets a validation error when given a timestamp in the past" do
-      Timecop.freeze(Time.zone.local(2013,11,20,8,0)) do
+      Timecop.freeze(now) do
         topic.set_auto_close('2013-11-19 5:00', admin)
         topic.auto_close_at.should == Time.zone.local(2013,11,19,5,0)
         topic.errors[:auto_close_at].should be_present
@@ -1136,7 +1126,7 @@ describe Topic do
     end
 
     it "can take a timestamp with timezone" do
-      Timecop.freeze(Time.utc(2013,11,20,12,0)) do
+      Timecop.freeze(now) do
         topic.set_auto_close('2013-11-25T01:35:00-08:00', admin)
         topic.auto_close_at.should == Time.utc(2013,11,25,9,35)
       end
@@ -1209,7 +1199,7 @@ describe Topic do
   describe 'secured' do
     it 'can remove secure groups' do
       category = Fabricate(:category, read_restricted: true)
-      topic = Fabricate(:topic, category: category)
+      Fabricate(:topic, category: category)
 
       Topic.secured(Guardian.new(nil)).count.should == 0
       Topic.secured(Guardian.new(Fabricate(:admin))).count.should == 2
