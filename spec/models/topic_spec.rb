@@ -5,6 +5,8 @@ require_dependency 'post_destroyer'
 
 describe Topic do
 
+  let(:now) { Time.zone.local(2013,11,20,8,0) }
+
   it { should validate_presence_of :title }
 
   it { should rate_limit }
@@ -527,20 +529,24 @@ describe Topic do
 
       context 'topic was set to close when it was created' do
         it 'puts the autoclose duration in the moderator post' do
-          @topic.created_at = 3.days.ago
-          @topic.update_status(status, true, @user)
-          expect(@topic.posts.last.raw).to include "closed after 3 days"
+          freeze_time(Time.new(2000,1,1)) do
+            @topic.created_at = 3.days.ago
+            @topic.update_status(status, true, @user)
+            expect(@topic.posts.last.raw).to include "closed after 3 days"
+          end
         end
       end
 
       context 'topic was set to close after it was created' do
         it 'puts the autoclose duration in the moderator post' do
-          @topic.created_at = 7.days.ago
-          Timecop.freeze(2.days.ago) do
-            @topic.set_auto_close(48)
+          freeze_time(Time.new(2000,1,1)) do
+            @topic.created_at = 7.days.ago
+            freeze_time(2.days.ago) do
+              @topic.set_auto_close(48)
+            end
+            @topic.update_status(status, true, @user)
+            expect(@topic.posts.last.raw).to include "closed after 2 days"
           end
-          @topic.update_status(status, true, @user)
-          expect(@topic.posts.last.raw).to include "closed after 2 days"
         end
       end
     end
@@ -922,7 +928,7 @@ describe Topic do
     context 'a new topic' do
       context 'auto_close_at is set' do
         it 'queues a job to close the topic' do
-          Timecop.freeze(Time.zone.now) do
+          Timecop.freeze(now) do
             Jobs.expects(:enqueue_at).with(7.hours.from_now, :close_topic, all_of( has_key(:topic_id), has_key(:user_id) ))
             Fabricate(:topic, auto_close_hours: 7, user: Fabricate(:admin))
           end
@@ -946,16 +952,16 @@ describe Topic do
         end
 
         it "ignores the category's default auto-close" do
-          Timecop.freeze(Time.zone.now) do
+          Timecop.freeze(now) do
             Jobs.expects(:enqueue_at).with(7.hours.from_now, :close_topic, all_of( has_key(:topic_id), has_key(:user_id) ))
             Fabricate(:topic, auto_close_hours: 7, user: Fabricate(:admin), category_id: Fabricate(:category, auto_close_hours: 2).id)
           end
         end
 
         it 'sets the time when auto_close timer starts' do
-          Timecop.freeze(Time.zone.now) do
+          Timecop.freeze(now) do
             topic = Fabricate(:topic, auto_close_hours: 7, user: Fabricate(:admin))
-            expect(topic.auto_close_started_at).to eq(Time.zone.now)
+            expect(topic.auto_close_started_at).to eq(now)
           end
         end
       end
@@ -963,7 +969,7 @@ describe Topic do
 
     context 'an existing topic' do
       it 'when auto_close_at is set, it queues a job to close the topic' do
-        Timecop.freeze(Time.zone.now) do
+        Timecop.freeze(now) do
           topic = Fabricate(:topic)
           Jobs.expects(:enqueue_at).with(12.hours.from_now, :close_topic, has_entries(topic_id: topic.id, user_id: topic.user_id))
           topic.auto_close_at = 12.hours.from_now
@@ -972,7 +978,7 @@ describe Topic do
       end
 
       it 'when auto_close_at and auto_closer_user_id are set, it queues a job to close the topic' do
-        Timecop.freeze(Time.zone.now) do
+        Timecop.freeze(now) do
           topic  = Fabricate(:topic)
           closer = Fabricate(:admin)
           Jobs.expects(:enqueue_at).with(12.hours.from_now, :close_topic, has_entries(topic_id: topic.id, user_id: closer.id))
@@ -992,7 +998,7 @@ describe Topic do
       end
 
       it 'when auto_close_user is removed, it updates the job' do
-        Timecop.freeze(Time.zone.now) do
+        Timecop.freeze(now) do
           Jobs.stubs(:enqueue_at).with(1.day.from_now, :close_topic, anything).returns(true)
           topic = Fabricate(:topic, auto_close_at: 1.day.from_now, auto_close_user: Fabricate(:admin))
           Jobs.expects(:cancel_scheduled_job).with(:close_topic, {topic_id: topic.id})
@@ -1003,7 +1009,7 @@ describe Topic do
       end
 
       it 'when auto_close_at value is changed, it reschedules the job' do
-        Timecop.freeze(Time.zone.now) do
+        Timecop.freeze(now) do
           Jobs.stubs(:enqueue_at).returns(true)
           topic = Fabricate(:topic, auto_close_at: 1.day.from_now)
           Jobs.expects(:cancel_scheduled_job).with(:close_topic, {topic_id: topic.id})
@@ -1014,7 +1020,7 @@ describe Topic do
       end
 
       it 'when auto_close_user_id is changed, it updates the job' do
-        Timecop.freeze(Time.zone.now) do
+        Timecop.freeze(now) do
           admin = Fabricate(:admin)
           Jobs.stubs(:enqueue_at).returns(true)
           topic = Fabricate(:topic, auto_close_at: 1.day.from_now)
@@ -1026,7 +1032,7 @@ describe Topic do
       end
 
       it 'when auto_close_at and auto_close_user_id are not changed, it should not schedule another CloseTopic job' do
-        Timecop.freeze(Time.zone.now) do
+        Timecop.freeze(now) do
           Jobs.expects(:enqueue_at).with(1.day.from_now, :close_topic, has_key(:topic_id)).once.returns(true)
           Jobs.expects(:cancel_scheduled_job).never
           topic = Fabricate(:topic, auto_close_at: 1.day.from_now)
@@ -1036,7 +1042,7 @@ describe Topic do
       end
 
       it "ignores the category's default auto-close" do
-        Timecop.freeze(Time.zone.now) do
+        Timecop.freeze(now) do
           mod = Fabricate(:moderator)
           # NOTE, only moderators can auto-close, if missing system user is used
           topic = Fabricate(:topic, category: Fabricate(:category, auto_close_hours: 14), user: mod)
@@ -1062,7 +1068,7 @@ describe Topic do
     subject(:topic) { Fabricate.build(:topic) }
 
     it 'can take a number' do
-      Timecop.freeze(Time.zone.now) do
+      Timecop.freeze(now) do
         topic.auto_close_hours = 2
         topic.auto_close_at.should be_within_one_second_of(2.hours.from_now)
       end
@@ -1078,7 +1084,6 @@ describe Topic do
     let(:topic)         { Fabricate.build(:topic) }
     let(:closing_topic) { Fabricate.build(:topic, auto_close_hours: 5) }
     let(:admin)         { Fabricate.build(:user, id: 123) }
-    let(:now)           { Time.zone.local(2013,11,20,8,0) }
 
     before { Discourse.stubs(:system_user).returns(admin) }
 
@@ -1164,7 +1169,7 @@ describe Topic do
     end
 
     it 'updates auto_close_at if it was already set to close' do
-      Timecop.freeze(Time.zone.now) do
+      Timecop.freeze(now) do
         closing_topic.set_auto_close(48)
         expect(closing_topic.auto_close_at).to eq(2.days.from_now)
       end

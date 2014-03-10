@@ -51,9 +51,9 @@ class Post < ActiveRecord::Base
   scope :public_posts, -> { joins(:topic).where('topics.archetype <> ?', Archetype.private_message) }
   scope :private_posts, -> { joins(:topic).where('topics.archetype = ?', Archetype.private_message) }
   scope :with_topic_subtype, ->(subtype) { joins(:topic).where('topics.subtype = ?', subtype) }
-  
+
   delegate :username, to: :user
-  
+
   def self.hidden_reasons
     @hidden_reasons ||= Enum.new(:flag_threshold_reached, :flag_threshold_reached_again, :new_user_spam_threshold_reached)
   end
@@ -101,12 +101,13 @@ class Post < ActiveRecord::Base
 
   def store_unique_post_key
     if SiteSetting.unique_posts_mins > 0
-      $redis.setex(unique_post_key, SiteSetting.unique_posts_mins.minutes.to_i, "1")
+      $redis.setex(unique_post_key, SiteSetting.unique_posts_mins.minutes.to_i, id)
     end
   end
 
   def matches_recent_post?
-    $redis.exists(unique_post_key)
+    post_id = $redis.get(unique_post_key)
+    post_id != nil and post_id != id
   end
 
   def raw_hash
