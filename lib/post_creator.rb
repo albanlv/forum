@@ -64,15 +64,20 @@ class PostCreator
       track_topic
       update_topic_stats
       update_user_counts
+
       publish
       ensure_in_allowed_users if guardian.is_staff?
       @post.advance_draft_sequence
       @post.save_reply_relationships
     end
 
-    handle_spam
-    track_latest_on_category
-    enqueue_jobs
+    if @post
+      PostAlerter.post_created(@post)
+
+      handle_spam
+      track_latest_on_category
+      enqueue_jobs
+    end
 
     @post
   end

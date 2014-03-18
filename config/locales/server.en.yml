@@ -170,6 +170,13 @@ en:
 
       Instead of adding another reply, please consider editing your previous replies, or visiting other topics.
 
+    reviving_old_topic: |
+      ### Revive this topic?
+
+      The last reply to this topic is now over %{days} days old. Your reply will bump the topic to the top of its list and notify anyone previously involved in the conversation.
+
+      Are you sure you want to continue this old conversation?
+
   activerecord:
     attributes:
       category:
@@ -658,6 +665,8 @@ en:
     topics_per_period_in_top_page: "How many topics loaded on the top topics page"
     redirect_new_users_to_top_page_duration: "Number of days during which new users are automatically redirect to the top page"
 
+    enable_badges: "Enable the badge system (experimental)"
+
     allow_index_in_robots_txt: "Site should be indexed by search engines (update robots.txt)"
     email_domains_blacklist: "A pipe-delimited list of email domains that are not allowed. Example: mailinator.com|trashmail.net"
     email_domains_whitelist: "A pipe-delimited list of email domains that users may register with. WARNING: Users with email domains other than those listed will not be allowed."
@@ -705,6 +714,10 @@ en:
     github_client_secret: "Client secret for Github authentication, registered at https://github.com/settings/applications"
 
     allow_restore: "Allow restore, which can replace ALL site data! Leave false unless you plan to do restore a backup"
+    maximum_backups: "The maximum amount of backups to keep on disk. Older backups are automatically deleted"
+    backup_daily: "Automatically create a site backup once a day"
+    enable_s3_backups: "Upload backups to S3 when complete. Make sure you have filled in your s3 credentials."
+    s3_backup_bucket: "The remote bucket to hold backups. WARNING: Make sure it is a private bucket."
 
     active_user_rate_limit_secs: "How frequently we update the 'last_seen_at' field, in seconds"
     previous_visit_timeout_hours: "How long a visit lasts before we consider it the 'previous' visit, in hours"
@@ -838,6 +851,7 @@ en:
     invites_shown: "Maximum invites shown on a user page"
     short_progress_text_threshold: "After the number of posts in a topic goes above this number, the progress bar will only show the current post number. If you change the progress bar's width, you may need to change this value."
     default_code_lang: "Default programming language syntax highlighting applied to GitHub code blocks (lang-auto, ruby, python etc.)"
+    warn_reviving_old_topic_age: "When someone starts replying to a topic older than this many days, a warning will be displayed to discourage the user from reviving an old discussion. Disable by setting to 0."
 
     embeddable_host: "Host that can embed the comments from this Discourse forum"
     feed_polling_enabled: "Whether to import a RSS/ATOM feed as posts"
@@ -858,6 +872,7 @@ en:
     private_message: "%{display_username} sent you a private message: %{link}"
     invited_to_private_message: "%{display_username} invited you to a private message: %{link}"
     invitee_accepted: "%{display_username} accepted your invitation"
+    linked: "%{display_username} linked you in %{link}"
 
   search:
     within_post: "#%{post_number} by %{username}: %{excerpt}"
@@ -1003,28 +1018,38 @@ en:
       <small>There should be an unsubscribe footer on every email you send, so let's mock one up. This email was sent by Name of Company, 55 Main Street, Anytown, USA 12345. If you would like to opt out of future emails, [click here to unsubscribe][5].</small>
 
   new_version_mailer:
-    subject_template: "[%{site_name}] Updates Are Available"
+    subject_template: "[%{site_name}] update available"
     text_body_template: |
-      A new version of Discourse is available.
+      A new version of Discourse is available:
 
       Your version: %{installed_version}
+      New version: **%{new_version}**
 
-      **New version: %{new_version}**
+      - See what's new in the [GitHub changelog](https://github.com/discourse/discourse/commits/master).
 
-      Please upgrade as soon as possible to get the latest fixes and new features. Visit http://meta.discourse.org for discussion and news about Discourse.
+      - Upgrade by visiting `\admin\docker`, refreshing the page a few times, and pressing the "upgrade" button.
+
+      - Visit http://meta.discourse.org for news, discussion, and support for Discourse.
 
   new_version_mailer_with_notes:
-    subject_template: "[%{site_name}] Updates Are Available"
+    subject_template: "[%{site_name}] update available"
     text_body_template: |
-      A new version of Discourse is available. Please upgrade as soon as possible to get the latest fixes and new features.
+      A new version of Discourse is available:
 
       Your version: %{installed_version}
+      New version: **%{new_version}**
 
-      **New version: %{new_version}**
+      - See what's new in the [GitHub changelog](https://github.com/discourse/discourse/commits/master).
+
+      - Upgrade by visiting `\admin\docker`, refreshing the page a few times, and pressing the "upgrade" button.
+
+      - Visit http://meta.discourse.org for news, discussion, and support for Discourse.
+
+      ### Release notes
 
       %{notes}
 
-      Visit http://meta.discourse.org for discussion and news about Discourse.
+
 
   system_messages:
     post_hidden:
@@ -1089,7 +1114,7 @@ en:
     welcome_user:
       subject_template: "Welcome to %{site_name}!"
       text_body_template: |
-        Thanks for joining %{site_name}, and welcome to our discussion forum!
+        Thanks for joining %{site_name}, and welcome!
 
         %{new_user_tips}
 
@@ -1100,13 +1125,13 @@ en:
     welcome_invite:
       subject_template: "Welcome to %{site_name}!"
       text_body_template: |
-        Thanks for accepting your invitation to %{site_name}, and welcome to our discussion forum!
+        Thanks for accepting your invitation to %{site_name}, and welcome!
 
         We've automatically generated a username for you: **%{username}**, but you can change that any time by visiting [your user profile][prefs].
 
         To log in again, either:
 
-        1. Use Facebook, Google, Twitter, or many other supported credentials -- but that credential must resolve to the **same email address** that you received your original invitation email at. Otherwise we won't be able to tell it is you!
+        1. Log in however you like -- but that login must resolve to the **same email address** that you received your original invitation email at. Otherwise we won't be able to tell it is you!
 
         2. Create a unique password for %{site_name} on [your user profile][prefs], then log in with that.
 
@@ -1319,7 +1344,7 @@ en:
       text_body_template: |
         Welcome to %{site_name}!
 
-        You're approved to join %{site_name}, welcome to our discussion forum!
+        A staff member approved your account on %{site_name}.
 
         Click the following link to confirm and activate your new account:
         %{base_url}/users/activate-account/%{email_token}
@@ -1396,3 +1421,9 @@ en:
     message_to_blank: "message.to is blank"
     text_part_body_blank: "text_part.body is blank"
     body_blank: "body is blank"
+
+  badges:
+    types:
+      gold: Gold
+      silver: Silver
+      bronze: Bronze

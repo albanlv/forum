@@ -350,14 +350,7 @@ Discourse.Post = Discourse.Model.extend({
     var topic = this.get('topic');
     return !topic.isReplyDirectlyBelow(this);
 
-  }.property('reply_count'),
-
-  canViewEditHistory: function() {
-    return (Discourse.SiteSettings.edit_history_visible_to_public ||
-            (Discourse.User.current() &&
-              (Discourse.User.current().get('staff') || Discourse.User.current().get('id') === this.get('user_id'))));
-  }.property()
-
+  }.property('reply_count')
 });
 
 Discourse.Post.reopenClass({
@@ -397,7 +390,7 @@ Discourse.Post.reopenClass({
 
   loadRevision: function(postId, version) {
     return Discourse.ajax("/posts/" + postId + "/revisions/" + version + ".json").then(function (result) {
-      return Discourse.Post.create(result);
+      return Em.Object.create(result);
     });
   },
 

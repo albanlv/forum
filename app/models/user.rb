@@ -21,6 +21,7 @@ class User < ActiveRecord::Base
   has_many :user_open_ids, dependent: :destroy
   has_many :user_actions, dependent: :destroy
   has_many :post_actions, dependent: :destroy
+  has_many :user_badges, dependent: :destroy
   has_many :email_logs, dependent: :destroy
   has_many :post_timings
   has_many :topic_allowed_users, dependent: :destroy
@@ -166,7 +167,7 @@ class User < ActiveRecord::Base
     self.username = new_username
 
     if current_username.downcase != new_username.downcase && valid?
-      DiscourseHub.nickname_operation { DiscourseHub.change_nickname(current_username, new_username) }
+      DiscourseHub.username_operation { DiscourseHub.change_username(current_username, new_username) }
     end
 
     save
@@ -566,7 +567,7 @@ class User < ActiveRecord::Base
     return I18n.t('redirected_to_top_reasons.new_user') if trust_level == 0 &&
       created_at > SiteSetting.redirect_new_users_to_top_page_duration.days.ago
     # long-time-no-see user
-    return I18n.t('redirected_to_top_reasons.not_seen_in_a_month') if last_seen_at < 1.month.ago
+    return I18n.t('redirected_to_top_reasons.not_seen_in_a_month') if last_seen_at && last_seen_at < 1.month.ago
     nil
   end
 

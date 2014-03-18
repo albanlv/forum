@@ -62,7 +62,7 @@ cs:
           one: 1r
           few: '%{count}r'
           other: '%{count}let'
-        date_month: MMM D
+        date_month: "D MMM"
         date_year: "MMM 'YY"
       medium:
         x_minutes:
@@ -996,7 +996,7 @@ cs:
           previous: Předchozí revize
           next: Další revize
           last: Poslední revize
-          comparing_previous_to_current_out_of_total: '<strong>#{{previous}}</strong> vs. <strong>#{{current}}</strong> / {{total}}'
+          comparing_previous_to_current_out_of_total: '<strong>{{previous}}</strong> vs <strong>{{current}}</strong> / {{total}}'
         displays:
           inline:
             title: Show the rendered output with additions and removals inline

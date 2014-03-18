@@ -8,6 +8,7 @@ describe Guardian do
   let(:moderator) { build(:moderator) }
   let(:admin) { build(:admin) }
   let(:leader) { build(:user, trust_level: 3) }
+  let(:elder)  { build(:user, trust_level: 4) }
   let(:another_admin) { build(:admin) }
   let(:coding_horror) { build(:coding_horror) }
 
@@ -259,7 +260,6 @@ describe Guardian do
     end
 
     describe 'a Post' do
-
       let(:another_admin) { Fabricate(:admin) }
       it 'correctly handles post visibility' do
         post = Fabricate(:post)
@@ -279,8 +279,43 @@ describe Guardian do
         Guardian.new(user).can_see?(post).should be_false
         Guardian.new(admin).can_see?(post).should be_true
       end
+    end
 
+    describe 'a PostRevision' do
+      let(:post_revision) { Fabricate(:post_revision) }
 
+      context 'edit_history_visible_to_public is true' do
+        before { SiteSetting.stubs(:edit_history_visible_to_public).returns(true) }
+
+        it 'is false for nil' do
+          Guardian.new.can_see?(nil).should be_false
+        end
+
+        it 'is true if not logged in' do
+          Guardian.new.can_see?(post_revision).should == true
+        end
+
+        it 'is true when logged in' do
+          Guardian.new(Fabricate(:user)).can_see?(post_revision).should == true
+        end
+      end
+
+      context 'edit_history_visible_to_public is false' do
+        before { SiteSetting.stubs(:edit_history_visible_to_public).returns(false) }
+
+        it 'is true for staff' do
+          Guardian.new(Fabricate(:admin)).can_see?(post_revision).should == true
+          Guardian.new(Fabricate(:moderator)).can_see?(post_revision).should == true
+        end
+
+        it 'is true for trust level 4' do
+          Guardian.new(Fabricate(:elder)).can_see?(post_revision).should == true
+        end
+
+        it 'is false for trust level lower than 4' do
+          Guardian.new(Fabricate(:leader)).can_see?(post_revision).should == false
+        end
+      end
     end
   end
 
@@ -373,6 +408,10 @@ describe Guardian do
 
         it "allows new posts from admins" do
           Guardian.new(admin).can_create?(Post, topic).should be_true
+        end
+
+        it "allows new posts from elders" do
+          Guardian.new(elder).can_create?(Post, topic).should be_true
         end
       end
 
@@ -551,6 +590,10 @@ describe Guardian do
         Guardian.new(admin).can_edit?(post).should be_true
       end
 
+      it 'returns true as a trust level 4 user' do
+        Guardian.new(elder).can_edit?(post).should be_true
+      end
+
       context 'post is older than post_edit_time_limit' do
         let(:old_post) { build(:post, topic: topic, user: topic.user, created_at: 6.minutes.ago) }
         before do
@@ -687,6 +730,10 @@ describe Guardian do
 
       it 'returns true when an admin' do
         Guardian.new(admin).can_moderate?(topic).should be_true
+      end
+
+      it 'returns true when trust level 4' do
+        Guardian.new(elder).can_moderate?(topic).should be_true
       end
 
     end
@@ -1445,6 +1492,117 @@ describe Guardian do
 
       it "is false for users" do
         Guardian.new(user).can_edit_email?(user).should be_false
+      end
+    end
+  end
+
+  describe 'can_edit_name?' do
+    it 'is false without a logged in user' do
+      Guardian.new(nil).can_edit_name?(build(:user, created_at: 1.minute.ago)).should be_false
+    end
+
+    it "is false for regular users to edit another user's name" do
+      Guardian.new(build(:user)).can_edit_name?(build(:user, created_at: 1.minute.ago)).should be_false
+    end
+
+    context 'for a new user' do
+      let(:target_user) { build(:user, created_at: 1.minute.ago) }
+
+      it 'is true for the user to change their own name' do
+        Guardian.new(target_user).can_edit_name?(target_user).should be_true
+      end
+
+      it 'is true for moderators' do
+        Guardian.new(moderator).can_edit_name?(user).should be_true
+      end
+
+      it 'is true for admins' do
+        Guardian.new(admin).can_edit_name?(user).should be_true
+      end
+    end
+
+    context 'when name is disabled in preferences' do
+      before do
+        SiteSetting.stubs(:enable_names).returns(false)
+      end
+
+      it 'is false for the user to change their own name' do
+        Guardian.new(user).can_edit_name?(user).should be_false
+      end
+
+      it 'is false for moderators' do
+        Guardian.new(moderator).can_edit_name?(user).should be_false
+      end
+
+      it 'is false for admins' do
+        Guardian.new(admin).can_edit_name?(user).should be_false
+      end
+    end
+
+    context 'when name is enabled in preferences' do
+      before do
+        SiteSetting.stubs(:enable_names).returns(true)
+      end
+
+      context 'when SSO is disabled' do
+        before do
+          SiteSetting.stubs(:enable_sso).returns(false)
+          SiteSetting.stubs(:sso_overrides_name).returns(false)
+        end
+
+        it 'is true for admins' do
+          Guardian.new(admin).can_edit_name?(admin).should be_true
+        end
+
+        it 'is true for moderators' do
+          Guardian.new(moderator).can_edit_name?(moderator).should be_true
+        end
+
+        it 'is true for users' do
+          Guardian.new(user).can_edit_name?(user).should be_true
+        end
+      end
+
+      context 'when SSO is enabled' do
+        before do
+          SiteSetting.stubs(:enable_sso).returns(true)
+        end
+
+        context 'when SSO name override is active' do
+          before do
+            SiteSetting.stubs(:sso_overrides_name).returns(true)
+          end
+
+          it 'is false for admins' do
+            Guardian.new(admin).can_edit_name?(admin).should be_false
+          end
+
+          it 'is false for moderators' do
+            Guardian.new(moderator).can_edit_name?(moderator).should be_false
+          end
+
+          it 'is false for users' do
+            Guardian.new(user).can_edit_name?(user).should be_false
+          end
+        end
+
+        context 'when SSO name override is not active' do
+          before do
+            SiteSetting.stubs(:sso_overrides_name).returns(false)
+          end
+
+          it 'is true for admins' do
+            Guardian.new(admin).can_edit_name?(admin).should be_true
+          end
+
+          it 'is true for moderators' do
+            Guardian.new(moderator).can_edit_name?(moderator).should be_true
+          end
+
+          it 'is true for users' do
+            Guardian.new(user).can_edit_name?(user).should be_true
+          end
+        end
       end
     end
   end
