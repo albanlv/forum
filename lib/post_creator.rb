@@ -137,12 +137,6 @@ class PostCreator
     end
   end
 
-  def secure_group_ids(topic)
-    @secure_group_ids ||= if topic.category && topic.category.read_restricted?
-      topic.category.secure_group_ids
-    end
-  end
-
   def clear_possible_flags(topic)
     # at this point we know the topic is a PM and has been replied to ... check if we need to clear any flags
     #
@@ -188,6 +182,7 @@ class PostCreator
     attrs = {last_posted_at: @post.created_at, last_post_user_id: @post.user_id}
     attrs[:bumped_at] = @post.created_at unless @post.no_bump
     attrs[:word_count] = (@topic.word_count || 0) + @post.word_count
+    attrs[:excerpt] = @post.excerpt(220, strip_links: true) if new_topic?
     @topic.update_attributes(attrs)
   end
 
@@ -208,6 +203,7 @@ class PostCreator
   end
 
   def rollback_if_host_spam_detected
+    return if @opts[:skip_validations]
     if @post.has_host_spam?
       @post.errors.add(:base, I18n.t(:spamming_host))
       @errors = @post.errors
@@ -253,7 +249,7 @@ class PostCreator
                     user: BasicUserSerializer.new(@post.user).as_json(root: false),
                     post_number: @post.post_number
                   },
-                  group_ids: secure_group_ids(@topic)
+                  group_ids: @topic.secure_group_ids
     )
   end
 

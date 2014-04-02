@@ -1,3 +1,5 @@
+require_dependency 'discourse_sass_importer'
+
 class SiteCustomization < ActiveRecord::Base
   ENABLED_KEY = '7e202ef2-56d7-47d5-98d8-a9c8d15e57dd'
   # placing this in uploads to ease deployment rules
@@ -11,11 +13,21 @@ class SiteCustomization < ActiveRecord::Base
     true
   end
 
+  def compile_stylesheet(scss)
+    ::Sass::Engine.new(scss, {
+      syntax: :scss,
+      cache: false,
+      read_cache: false,
+      style: :compressed,
+      filesystem_importer: DiscourseSassImporter
+    }).render
+  end
+
   before_save do
     ['stylesheet', 'mobile_stylesheet'].each do |stylesheet_attr|
       if self.send("#{stylesheet_attr}_changed?")
         begin
-          self.send("#{stylesheet_attr}_baked=", Sass.compile(self.send(stylesheet_attr)))
+          self.send("#{stylesheet_attr}_baked=", compile_stylesheet(self.send(stylesheet_attr)))
         rescue Sass::SyntaxError => e
           error = e.sass_backtrace_str("custom stylesheet")
           error.gsub!("\n", '\A ')
@@ -29,7 +41,8 @@ class SiteCustomization < ActiveRecord::Base
     end
   end
 
-  after_save do
+  # calls message bus, data must be committed
+  after_commit(on: :save) do
     if stylesheet_changed?
       File.delete(stylesheet_fullpath) if File.exists?(stylesheet_fullpath)
     end
@@ -43,10 +56,9 @@ class SiteCustomization < ActiveRecord::Base
       MessageBus.publish "/file-change/#{key}", stylesheet_hash
     end
     MessageBus.publish "/header-change/#{key}", header if header_changed?
-
   end
 
-  after_destroy do
+  after_commit(on: :destroy) do
     if File.exists?(stylesheet_fullpath)
       File.delete stylesheet_fullpath
     end

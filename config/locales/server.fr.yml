@@ -7,6 +7,7 @@
 # <Maxime QUANDALLE> "maxime@quandalle.com"
 # <Thomas BENTKOWSKI> "thomasbentkowski@gmail.com"
 # <Julien DUMETIER> "julien@dumetier.net"
+# <Sebastien MIQUEROLLE> "s.miquerolle@gmail.com"
 #
 # To work with us on translations, see:
 # https://www.transifex.com/projects/p/discourse-pt-br/
@@ -49,7 +50,7 @@ fr:
       other: "%{count} réponses supplémentaires"
     loading: "Chargement de la discussion..."
     permalink: "Lien permanent"
-    imported_from: "Sujet en provenance de l'article du blog : %{link}"
+    imported_from: "Il s'agit d'un sujet en provenance de l'article : %{link}"
     in_reply_to: "en réponse à %{username}"
     replies:
       one: "1 réponse"
@@ -165,6 +166,8 @@ fr:
         name: "Nom de catégorie"
       post:
         raw: "Corps"
+      user:
+        ip_address: ""
     errors:
       messages:
         is_invalid: "n'est pas valide; merci d'être plus descriptif"
@@ -462,10 +465,11 @@ fr:
     sidekiq_warning: 'Sidekiq n''est pas lancé. De nombreuses tâches, comme l''envoie d''e-mails, sont executées de manière asynchrome par sidekiq. Assurez-vous d''avoir au moins un processus sidekiq de lancé. <a href="https://github.com/mperham/sidekiq">En savoir plus sur sidekiq</a>.'
     queue_size_warning: 'Il y a %{queue_size} tâches dans la file d''attente, ce qui est beaucoup. Cela peut provenir d''un problème avec les processus Sidekiq, ou à un manque de processus Sidekiq travailleurs.'
     memory_warning: 'Votre serveur dispose de moins de 1 Go de mémoire vive. Au moins 1 Go de RAM est recommandé.'
-    facebook_config_warning: 'Le serveur est configuré pour permettre l''authentification par Facebook (enable_facebook_logins), mais les paramètres facebook_app_id et facebook_app_secret ne sont pas renseignés. Vous pouvez modifier ces paramètres dans <a href="/admin/site_settings">l''interface d''administration</a>, <a href="https://github.com/discourse/discourse/wiki/The-Discourse-Admin-Quick-Start-Guide#enable-facebook-logins" target="_blank">voir le guide pour en savoir plus</a>.'
-    twitter_config_warning: 'Le serveur est configuré pour permettre l''authentification par Twitter (enable_twitter_logins), mais les paramètres key et secret ne sont pas renseignés. Vous pouvez modifier ces paramètres dans le <a href="/admin/site_settings">Paramétrage du Site</a>. <a href="https://github.com/discourse/discourse/wiki/The-Discourse-Admin-Quick-Start-Guide#enable-twitter-logins" target="_blank">voir le guide pour en savoir plus</a>.'
-    github_config_warning: 'Le serveur est configuré pour permettre l''authentification par GitHub (enable_github_logins), mais les paramètres github_client_id et github_client_secret ne sont pas renseignés. Vous pouvez modifier ces paramètres dans <a href=\"/admin/site_settings\">l''interface d''administration</a>. <a href="https://github.com/discourse/discourse/wiki/The-Discourse-Admin-Quick-Start-Guide" target="_blank">voir le guide pour en savoir plus</a>.'
+    facebook_config_warning: 'Le serveur est configuré pour permettre l''authentification par Facebook (enable_facebook_logins), mais les paramètres facebook_app_id et facebook_app_secret ne sont pas renseignés. Allez dans les <a href="/admin/site_settings">Paramètres du Site</a> et mettez les à jour. <a href="https://meta.discourse.org/t/configuring-facebook-login-for-discourse/13394" target="_blank">Voir le guide pour en savoir plus</a>.'
+    twitter_config_warning: 'Le serveur est configuré pour permettre l''authentification par Twitter (enable_twitter_logins), mais les paramètres key et secret ne sont pas renseignés. Allez dans les <a href="/admin/site_settings">Paramétres du Site</a> et mettez les à jour. <a href="https://meta.discourse.org/t/configuring-twitter-login-for-discourse/13395" target="_blank">Voir le guide pour en savoir plus</a>.'
+    github_config_warning: 'Le serveur est configuré pour permettre l''authentification par GitHub (enable_github_logins), mais les paramètres github_client_id et github_client_secret ne sont pas renseignés. Allez dans les <a href=\"/admin/site_settings\">Paramètres du Site</a> et mettez les à jour. <a href="https://meta.discourse.org/t/configuring-github-login-for-discourse/13745" target="_blank">Voir le guide pour en savoir plus</a>.'
     s3_config_warning: 'Le serveur est configuré pour charger les fichiers vers s3, mais au moins un de ces paramètre n''est pas configuré : s3_access_key_id, s3_secret_access_key or s3_upload_bucket. Vous pouvez modifier ces paramètres dans <a href=\"/admin/site_settings\">l''interface d''administration</a>. <a href="http://meta.discourse.org/t/how-to-set-up-image-uploads-to-s3/7229" target="_blank">Voir le guide "Comment charger les images sur S3 ?" pour en savoir plus</a>'
+    s3_backup_config_warning: 'Le serveur est configuré pour envoyer les sauvegardes sur S3, mais l''un des paramètres suivants n''est pas renseigné: s3_access_key_id, s3_secret_access_key or s3_backup_bucket. Allez dans les <a href="/admin/site_settings">Paramètres du site</a> et mettez les à jour. <a href="http://meta.discourse.org/t/how-to-set-up-image-uploads-to-s3/7229" target="_blank">Voir "Comment mettre en place une sauvegarde sur S3?" pour en savoir plus</a>.'
     image_magick_warning: 'Le serveur est configuré pour créer des aperçus des grandes images, mais ImageMagick n''est pas installé. Installez ImageMagick en utilisant votre gestionnaire de paquets favori ou bien allez  ici <a href="http://www.imagemagick.org/script/binary-releases.php" target="_blank">pour télécharger la dernière version</a>.'
     failing_emails_warning: 'Il y a %{num_failed_jobs} tâches d''envois d''email en erreur. Vérifiez votre fichier config/discourse.conf et assurez-vous de la conformité des paramètres du serveur de mail. <a href="/sidekiq/retries" target="_blank">Regarder les processus en échec dans  Sidekiq</a>.'
     default_logo_warning: "Vous n'avez pas changé le logo de votre site. Merci de mettre à jour les <a href='/admin/site_settings'>paramètres du site</a> suivant : logo_url, logo_small_url et favicon_url."
@@ -564,6 +568,7 @@ fr:
     category_post_template: "Le modèle de message utilisé lorsque vous créez une nouvelle catégorie"
     onebox_max_chars: "Nombre maximal de caractères qu'une boîte peut importer d'un site externe dans un message."
     logo_url: "Le logo de votre site, par exemple : http://example.com/logo.png"
+    digest_logo_url: "Le logo qui sera utilisé dans les emails de votre site. Si non renseigné, alors `logo_url` sera utilisé, par exemple : http://example.com/logo.png"
     logo_small_url: "La version minifiée du logo de votre site lorsque vous faites défilez vers le bas les messages d'un sujet ex : http://example.com/logo-small.png"
     favicon_url: "Le favicon de votre site, voir http://fr.wikipedia.org/wiki/Favicon"
     apple_touch_icon_url: "Icône utilisée pour les appareils d'Apple. Taille recommandée 144 px par 144 px."
@@ -611,6 +616,7 @@ fr:
     topics_per_period_in_top_summary: "Combien de sujets chargés sur le résumé des meilleures sujets"
     topics_per_period_in_top_page: "Combien de sujets chargés sur la page principale des sujets"
     redirect_new_users_to_top_page_duration: "Nombre de jours durant lesquels un nouvel utilisateur sera automatiquement redirigé vers la page \"top\""
+    enable_badges: "Activer le système de badge (expérimental)"
     allow_index_in_robots_txt: "Le site doit-être indexé par les moteurs de recherche (met à jour le fichier robots.txt)"
     email_domains_blacklist: "Liste des domaines d'email interdits, délimités par un pipe. Exemple: mailinator.com|trashmail.net"
     email_domains_whitelist: "Liste des domaines d'email autorisés, délimités par un pipe. ATTENTION : les utilisateurs ayant un email sur un autre domaine ne pourrons pas s'enregistrer."
@@ -631,7 +637,6 @@ fr:
     sso_overrides_username: "Surcharger les noms locaux avec les noms externes d'un SSO (ATTENTION: Des écarts peuvent se produire due aux règles locales sur les noms d'utilisateur)"
     sso_overrides_name: "Surcharger les pseudos locaux avec les pseudos externes d'un SSO (ATTENTION: Des écarts peuvent se produire due aux règles locales sur les pseudos)"
     enable_local_logins: "Activer l'authentification traditionnelle, avec pseudo local et mot de passe"
-    enable_local_account_create: "Activer la création de nouveaux comptes locaux"
     enable_google_logins: "Active l'authentification Google"
     enable_yahoo_logins: "Active l'authentification Yahoo"
     enable_twitter_logins: "Active l'authentification Twitter, nécessite twitter_consumer_key et  twitter_consumer_secret"
@@ -644,7 +649,10 @@ fr:
     github_client_id: "id client pour l'authentification Github, enregistré sur https://github.com/settings/applications"
     github_client_secret: "secret client  pour l'authentification Github, enregistré sur https://github.com/settings/applications"
     allow_restore: "Autoriser la restauration, qui peut remplacer TOUTES les données du site! Laissez à faux, sauf si vous envisagez de faire restaurer une sauvegarde"
+    maximum_backups: "Nombre maximum de sauvegardes à conserver sur le disque. Les anciennes sauvegardes seront automatiquement supprimées."
     backup_daily: "Créer automatiquement une sauvegarde du site chaque jour"
+    enable_s3_backups: "Envoyer votre sauvegarde à S3 lorsqu'elle est terminée. Assurez-vous d'avoir bien remplis vos identifiants S3."
+    s3_backup_bucket: "Bucket distant qui contiendra les sauvegardes. ATTENTION: Vérifié que c'est un bucket privée"
     active_user_rate_limit_secs: "A quelle fréquence mettre à jour le champ 'dernier_vu_a', en secondes."
     previous_visit_timeout_hours: "Combien de temps dure une visite avant de la considérer comme la visite 'précédente', en heures."
     rate_limit_create_topic: "Après la création d'un sujet, les utilisateurs doivent attendre ce nombre de secondes avant de pouvoir en créer un nouveau"
@@ -711,7 +719,7 @@ fr:
     white_listed_spam_host_domains: "Une liste des domaines exclus des hôtes testés comme spam séparé par des virgules, les nouveaux utilisateurs seront en mesure de créer un nombre illimité de messages avec des liens vers ce domaine"
     staff_like_weight: "Poids supplémentaire donné aux Likes du staff lors d'une recherche."
     reply_by_email_enabled: "Activer répondre aux sujets via email"
-    reply_by_email_address: "Modèle pour la réponse par adresse email par exemple : %{reply_key}@reply.myforum.com"
+    reply_by_email_address: "Modèle pour la réponse par adresse email entrante; exemple : %{reply_key}@reply.example.com ou replies+%{reply_key}@example.com"
     pop3s_polling_enabled: "Utiliser le polling via POP3S pour les réponses par email"
     pop3s_polling_port: "Le port à utiliser pour le polling sur le POPS3"
     pop3s_polling_host: "L'hôte utilisé pour le polling pour l'email via POP3S"
@@ -740,6 +748,7 @@ fr:
     dominating_topic_minimum_percent: "Quel est le pourcentage de messages d'un utilisateur doit poster dans un sujet avant que nous considérions qu'il est dominant."
     suppress_uncategorized_badge: "Ne pas afficher le badge pour les sujets non catégorisés dans les listes des sujets"
     min_posts_for_search_in_topic: "Désactiver la recherche dans les sujets si les sujets ont moins du minimum de messages"
+    global_notice: "Affiche un bandeau global pour tout les utilisateurs du site, laissez vide pour le caché (HTML autorisé)"
     enable_names: "Permettre aux utilisateurs d'afficher leurs noms et prénoms"
     display_name_on_posts: "Afficher également le nom complet de l'utilisateur dans ses messages"
     invites_shown: "Nombre maximum d'invitations affichées sur une page utilisateur"
@@ -750,6 +759,7 @@ fr:
     feed_polling_enabled: "Si vous souhaitez importer un flux RSS/ATOM en tant que messages"
     feed_polling_url: "URL du flux RSS/ATOM à importer"
     embed_by_username: "Pseudo de l'utilisateur Discourse qui crée les sujets"
+    embed_truncate: "Tronquer les messages importés"
     embed_category: "Catégorie des sujets créés"
     embed_post_limit: "Le nombre maximum de messages à incorporer"
     tos_accept_required: "Si il est activé, les utilisateurs devront cocher une case sur le formulaire d'inscription pour confirmer qu'ils acceptent les conditions de service. Modifier \"Formulaire d'inscription : Message des Conditions d'utilisation» dans l'onglet Contenu pour modifier le message."
@@ -764,6 +774,7 @@ fr:
     private_message: "%{display_username} vous a envoyé un message privé: %{link}"
     invited_to_private_message: "%{display_username} vous a invité dans une conversation privée: %{link}"
     invitee_accepted: "%{display_username} a accepté votre invitation"
+    linked: "%{display_username} a mentionné l'un de vos messages : %{link}"
   search:
     within_post: "#%{post_number} par %{username}: %{excerpt}"
     types:
@@ -775,7 +786,7 @@ fr:
   most_recent_poster: "Auteur le plus récent"
   frequent_poster: "Auteur fréquent"
   redirected_to_top_reasons:
-    new_user: "Bienvenue! En tant que nouveau visiteur, ceci sera votre page d'accueil jusqu'à ce que vous ayez pris le temps de faire un peu le tour du forum. Pour vous, une sélection des sujets les plus populaires."
+    new_user: "Bienvenue! En tant que nouveau visiteur, ceci sera votre page d'accueil jusqu'à ce que vous ayez pris le temps de faire un peu le tour du forum. Retrouvez ici une sélection des sujets les plus populaires."
     not_seen_in_a_month: "Bon retour parmi nous! Nous ne vous avons pas vu depuis un moment, voici les meilleurs sujets de discussions depuis votre absence."
   move_posts:
     new_topic_moderator_post:
@@ -904,7 +915,7 @@ fr:
 
       - Voir les nouveautés sur le [changelog de GitHub](https://github.com/discourse/discourse/commits/master).
 
-      - Mettez à jour en allant sur `\admin\docker`, rafraîchir la page et appuyer sur le bouton "upgrade".
+      - Mettez à jour en allant sur `/admin/docker`, rafraîchir la page et appuyer sur le bouton "Upgrade Discourse".
 
       - Visitez http://meta.discourse.org pour vous tenir au courant, discuter et avoir de l'aide à propos de Discourse.
   new_version_mailer_with_notes:
@@ -917,7 +928,7 @@ fr:
 
       - Voir les nouveautés sur le [changelog de GitHub](https://github.com/discourse/discourse/commits/master).
 
-      - Mettez à jour en allant sur `\admin\docker`, rafraîchir la page et appuyer sur le bouton "upgrade".
+      - Mettez à jour en allant sur `/admin/docker`, rafraîchir la page et appuyer sur le bouton "Upgrade Discourse".
 
       - Visitez http://meta.discourse.org pour vous tenir au courant, discuter et avoir de l'aide à propos de Discourse.
 
@@ -943,12 +954,49 @@ fr:
         Cependant, si le message est  signalé par la communauté une seconde fois, les modérateurs seront informés (et ils pourront prendre d'autres mesures y compris l'éventuelle suspension de votre compte.)
 
         Pour plus d'informations, merci de vous en référer à la  [FAQ](%{base_url}/faq).
+    usage_tips:
+      text_body_template: |
+        Ce message privé contient quelques astuces pour vous aider à démarrer rapidement :
+
+        ### Continuez à descendre
+
+        Il n'y a pas de bouton Page Suivante ni de numéro de page. Pour continuer à lire, vous avez juste à descendre.
+
+        Lorsque de nouvelles réponses arrivent, elles apparaissent automatiquement en bas du sujet.
+
+        ### Comment je réponds ?
+
+        - Pour répondre à un message spécifique, utilisez le bouton "Répondre" sur le message.
+
+        - Si vous voulez répondre au thème global du sujet, plutôt qu'à une personne en particulier, utilisez le bouton "Réponse" tout en bas du sujet.
+
+        - Si vous voulez continuer le sujet dans une section différente, mais garder le lien entre votre sujet et le message qui vous l'a inspiré, utilisez la fonction "Répondre en créant un nouveau sujet" qui se trouve à droite de chaque message.
+
+        ### Qui me parle ?
+
+        Quand quelqu'un répond à votre message, vous cite, ou mentionne votre @pseudo, une notification ➀ apparaît en haut de la page. Cliquez ou touchez le chiffre des notifications pour voir qui vous parle, et où.
+
+        - Pour mentionner le pseudo d'un utilisateur, commencez à taper `@` et une liste d'auto-complétion apparaîtra.
+
+        - Pour citer un message entier, utiliser le bouton "Citer" dans la barre d'édition.
+
+        - Pour citer uniquement une portion de message, surlignez-là et cliquez ensuite sur le bouton "Répondre" qui apparaît au survol de la sélection.
+
+        ### Regarde ce message !
+
+        Pour faire savoir à quelqu'un que vous avez apprécié son message, cliquez sur le bouton J'aime ♥ en bas du message. Si vous voyez un problème avec un message, n'hésitez pas à cliquer sur le bouton Signalez pour avertir les modérateurs et les autres membres.
+
+        ### Où suis-je ?
+
+        - Pour retourner à la page d'accueil à tout moment, cliquez sur l'**icône en haut à gauche.**
+
+        - Pour effectuer une recherche, visiter votre profil, ou naviguer, cliquez sur les **icônes en haut à droite**.
+
+        - Pendant que vous consultez un sujet, vous pouvez retourner au début ↑ en cliquant sur son titre situé en haut de l'écran ou en appuyant sur la touche <kbd>home</kbd>. Pour atteindre la *fin* ↓, cliquez sur la flèche vers le bas sur l’indicateur de progression en bas de la page, ou appuyez sur la touche <kbd>fin</kbd>, ou cliquez sur le champ "dernier message" dans le résumé du sujet, sous le premier message.
     welcome_user:
       subject_template: "Bienvenue sur %{site_name} !"
       text_body_template: |
-        Salut !
-
-        Merci d'avoir rejoint %{site_name}, et bienvenue sur notre forum de discussion !
+        Merci d'avoir rejoint %{site_name}, et bienvenue !
 
         %{new_user_tips}
 
@@ -958,13 +1006,13 @@ fr:
     welcome_invite:
       subject_template: "Bienvenue sur %{site_name} !"
       text_body_template: |
-        Merci d'avoir accepté l'invitation sur %{site_name}, et bienvenue sur notre forum de discussion !
+        Merci d'avoir accepté l'invitation sur %{site_name}, et bienvenue !
 
         Nous vous avons automatiquement généré un pseudo : **%{username}**, mais vous pouvez le changer quand vous voulez en allant sur [votre profil][prefs].
 
         Pour vous reconnecter, vous pouvez :
 
-        1. Utiliser Facebook, Google, Twitter ou de nombreux autres fournisseurs d'informations supportés (mais ces fournisseurs doivent utiliser la **même adresse email** que l'invitation que vous avez reçue. Autrement, nous ne pourrons pas vous reconnaître).
+        1. Utiliser votre identifiant préféré -- mais votre **adresse email** devra être la même que celle de l'invitation que vous avez reçue. Autrement, nous ne pourrons pas vous reconnaître.
 
         2. Créer un mot de passe unique pour %{site_name} sur votre [page de profil utilisateur][prefs], et vous connecter avec
 
@@ -980,9 +1028,29 @@ fr:
     export_succeeded:
       subject_template: "Export terminé avec succès"
       text_body_template: "L'export a réussi."
+    export_failed:
+      subject_template: "Echec de l'export"
+      text_body_template: |
+        L'export a échoué.
+
+        Voici le détail:
+
+        ```
+        %{logs}
+        ```
     import_succeeded:
       subject_template: "Import terminé avec succès"
       text_body_template: "L'import a réussi."
+    import_failed:
+      subject_template: "Echec de l'import"
+      text_body_template: |
+        L'import a échoué.
+
+        Voici le détail:
+
+        ```
+        %{logs}
+        ```
     email_error_notification:
       subject_template: "Erreur d'analyse de l'email"
       text_body_template: |
@@ -1146,7 +1214,7 @@ fr:
       text_body_template: |
         Bienvenue sur %{site_name} !
 
-        Vous avez été approuvé pour rejoindre %{site_name}, bienvenue sur notre forum de discussion!
+        Un membre de l'équipe a approuvé votre compte sur %{site_name}.
 
         Cliquez sur le lien suivant pour confirmer et activer votre nouveau compte :
         %{base_url}/users/activate-account/%{email_token}
@@ -1215,3 +1283,8 @@ fr:
     message_to_blank: "message.to est vide"
     text_part_body_blank: "text_part.body est vide"
     body_blank: "body est vide"
+  badges:
+    types:
+      gold: Or
+      silver: Argent
+      bronze: Bronze

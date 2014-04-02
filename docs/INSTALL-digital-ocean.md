@@ -1,8 +1,10 @@
 The [Discourse Docker Image][dd] makes it easy to set up Discourse on a cloud server. We will use [Digital Ocean][do], although these steps will work on other similar services.
 
-This guide assumes that you have no knowledge of Ruby/Rails or Linux shell. Feel free to skip steps you are comfortable with.
+This guide assumes that you have no knowledge of Ruby/Rails or Linux shell. 
 
 # Create New Digital Ocean Droplet
+
+[Sign up for Digital Ocean][do], update billing info, then begin creating your new cloud server (Droplet).
 
 Discourse requires a minimum of 1 GB RAM, however **2 GB RAM is strongly recommended**. We'll use "discourse" as the Hostname.
 
@@ -12,7 +14,7 @@ Install Discourse on Ubuntu 12.04.3 LTS x64. We always recommend using [the curr
 
 <img src="https://meta-discourse.r.worldssl.net/uploads/default/3399/f3fc67ee6aa90ea4.png" width="690" height="477"> 
 
-You will receive a mail from Digital Ocean with the root password to your Droplet. (However, if you use SSH keys, you may not need a password to log in.)
+You will receive a mail from Digital Ocean with the root password to your Droplet. (However, if you know how to use SSH keys, you may not need a password to log in.)
 
 # Access Your Droplet
 
@@ -135,7 +137,7 @@ Sign into your Discourse instance. There should be a reminder visible on the sit
 
 # Post-Install Maintenance
 
-We believe most small and medium size Discourse installs will be fine with the recommended 2 GB of RAM. However, if you are using the absolute minimum 1 GB of RAM, or your forum is growing you may want to [set up a swap file](https://www.digitalocean.com/community/articles/how-to-add-swap-on-ubuntu-12-04) just in case.
+We believe most small and medium size Discourse installs will be fine with the recommended 2 GB of RAM. However, if you are using the absolute minimum 1 GB of RAM, or your forum is growing you may want to [set up a swap file](https://meta.discourse.org/t/create-a-swapfile-for-your-linux-server/13880) just in case.
 
 To **upgrade Discourse to the latest version**, visit `/admin/docker`, refresh the page a few times (yes, seriously) and then press the Upgrade button at the top. View the live output at the bottom of your browser to see when things are complete. You should see:
 
@@ -146,13 +148,25 @@ To **upgrade Discourse to the latest version**, visit `/admin/docker`, refresh t
 
 Then you know it's complete. (Yes, we will be improving this process soon!)
 
+# Other Optional Stuff
+
+Do you want...
+
+- Users to log in via Facebook? [Configure Facebook logins](https://meta.discourse.org/t/configuring-facebook-login-for-discourse/13394).
+
+- Users to log in via Twitter? [Configure Twitter logins](https://meta.discourse.org/t/configuring-twitter-login-for-discourse/13395/last).
+
+- Users to post reples via email? [Configure reply via email](https://meta.discourse.org/t/set-up-reply-via-email-support/14003).
+
+- Automatic daily backups? [Configure backups](https://meta.discourse.org/t/hot-off-the-presses-automated-backup-support/13805)
+
 If anything needs to be improved in this guide, feel free to ask on [meta.discourse.org][meta], or even better, submit a pull request.
 
    [dd]: https://github.com/discourse/discourse_docker
   [man]: https://mandrillapp.com
   [ssh]: https://help.github.com/articles/generating-ssh-keys
  [meta]: https://meta.discourse.org
-   [do]: https://www.digitalocean.com/
+   [do]: https://www.digitalocean.com/?refcode=5fa48ac82415
   [lts]: https://wiki.ubuntu.com/LTS
   [jet]: http://www.mailjet.com/pricing
   [gun]: http://www.mailgun.com/
