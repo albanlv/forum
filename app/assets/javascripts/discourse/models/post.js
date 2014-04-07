@@ -176,6 +176,17 @@ Discourse.Post = Discourse.Model.extend({
     }
   },
 
+  /**
+    Expands the first post's content, if embedded and shortened.
+
+    @method expandFirstPost
+  **/
+  expand: function() {
+    var self = this;
+    return Discourse.ajax("/posts/" + this.get('id') + "/expand-embed").then(function(post) {
+      self.set('cooked', "<section class='expanded-embed'>" + post.cooked + "</section>" );
+    });
+  },
 
   /**
     Recover a deleted post

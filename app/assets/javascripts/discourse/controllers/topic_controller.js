@@ -167,6 +167,11 @@ Discourse.TopicController = Discourse.ObjectController.extend(Discourse.Selected
       this.get('content').setStatus('pinned', this.get('pinned_at') ? false : true);
     },
 
+    togglePinnedGlobally: function() {
+      // Note that this is different than clearPin
+      this.get('content').setStatus('pinned_globally', this.get('pinned_at') ? false : true);
+    },
+
     toggleArchived: function() {
       this.get('content').toggleStatus('archived');
     },
@@ -216,9 +221,25 @@ Discourse.TopicController = Discourse.ObjectController.extend(Discourse.Selected
           }) + "\n\n" + q);
         });
       });
-    }
+    },
 
+    expandFirstPost: function(post) {
+      var self = this;
+      this.set('loadingExpanded', true);
+      post.expand().then(function() {
+        self.set('firstPostExpanded', true);
+      }).catch(function(error) {
+        bootbox.alert($.parseJSON(error.responseText).errors);
+      }).finally(function() {
+        self.set('loadingExpanded', false);
+      });
+    }
   },
+
+  showExpandButton: function() {
+    var post = this.get('post');
+    return post.get('post_number') === 1 && post.get('topic.expandable_first_post');
+  }.property(),
 
   slackRatio: function() {
     return Discourse.Capabilities.currentProp('slackRatio');

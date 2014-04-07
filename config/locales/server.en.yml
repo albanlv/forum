@@ -28,6 +28,10 @@ en:
   via: "%{username} via %{site_name}"
   is_reserved: "is reserved"
 
+  errors:
+    embed:
+      load_from_remote: "There was an error loading that post."
+
   backup:
     operation_already_running: "An operation is currently running. Can't start a new job right now."
     backup_file_should_be_tar_gz: "The backup file should be a .tar.gz archive."
@@ -49,7 +53,7 @@ en:
 
     loading: "Loading Discussion..."
     permalink: "Permalink"
-    imported_from: "This is a companion discussion topic for the original blog entry at: %{link}"
+    imported_from: "This is a companion discussion topic for the original entry at: %{link}"
     in_reply_to: "in reply to %{username}"
     replies:
       one: "1 reply"
@@ -867,6 +871,7 @@ en:
     embed_category: "Category of created topics"
     embed_post_limit: "Maximum number of posts to embed"
     tos_accept_required: "If enabled, users will need to check a box on the signup form to confirm that they accept the terms of service. Edit 'Signup Form: Terms of Service Message' in the Content tab to change the message."
+    notify_about_flags_after: "If there are flags that haven't been handled after this many hours, send an email to the contact_email. Set to 0 to disable."
 
   notification_types:
     mentioned: "%{display_username} mentioned you in %{link}"
@@ -925,6 +930,9 @@ en:
     autoclosed_disabled: "This topic is now opened. New replies are allowed."
     pinned_enabled: "This topic is now pinned. It will appear at the top of its category until it is either unpinned by a moderator, or the Clear Pin button is pressed."
     pinned_disabled: "This topic is now unpinned. It will no longer appear at the top of its category."
+
+    pinned_globally_enabled: "This topic is now pinned globally. It will appear at the top of its category and all topic lists until it is either unpinned by a moderator, or the Clear Pin button is pressed."
+    pinned_globally_disabled: "This topic is now unpinned. It will no longer appear at the top of its category."
     visible_enabled: "This topic is now visible. It will be displayed in topic lists."
     visible_disabled: "This topic is now invisible. It will no longer be displayed in any topic lists. The only way to access this topic is via direct link."
 
@@ -1056,7 +1064,16 @@ en:
 
       %{notes}
 
-
+  flags_reminder:
+    flags_were_submitted:
+      one: "There are flags that were submitted over 1 hour ago."
+      other: "There are flags that were submitted over %{count} hours ago."
+    please_review: "Please review them."
+    post_number: "post"
+    how_to_disable: "Disable this email by changing the notify_about_flags_after setting to 0."
+    subject_template:
+      one: "1 flag is waiting to be handled"
+      other: "%{count} flags are waiting to be handled"
 
   system_messages:
     post_hidden:

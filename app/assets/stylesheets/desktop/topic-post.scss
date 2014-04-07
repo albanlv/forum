@@ -54,6 +54,7 @@ h1 .topic-statuses .topic-status i {margin-right: 5px;}
   font-size: 12px;
   margin-left: -8px;
   background: $primary_background_color;
+  color: $secondary_text_color;
   @include medium-width {
   left: 107px;
   }
@@ -413,6 +414,9 @@ span.post-count {
   opacity: .8;
 }
 
+button.expand-post {
+  margin-top: 10px;
+}
 
 #topic-footer-buttons {
   .btn {
@@ -504,11 +508,12 @@ iframe {
     text-align: center;
 
     a {
-      display: block;
       margin: 0 auto;
       width: 45px;
-      display: inline;
       word-wrap: break-word;
+      color: $primary_text_color;
+      font-weight: normal;
+      line-height: 1.3;
     }
 
     a.user-group {
@@ -517,18 +522,15 @@ iframe {
     }
 
     h3 a {
-      display: inline;
       width: auto;
 
     }
 
     h3.full-name {
-      display: inline;
       font-weight: normal;
       font-size: 12px;
       margin-top: 2px;
       a {color: $secondary_text_color;}
-
     }
   }
 
@@ -778,7 +780,7 @@ blockquote { /* solo quotes */
 
 .span14 { width: 70%; padding-left: 1%; } //main content
 .span2 {width: 9%; }
-.span11 {width: 83%; padding-left: 2%; padding-right: 1%;}
+.span11 {width: 85%; padding-left: 2%;}
 .span5 {width: 19%; padding-left: 1%; }
 
 

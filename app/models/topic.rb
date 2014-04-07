@@ -618,8 +618,9 @@ class Topic < ActiveRecord::Base
     TopicUser.change(user.id, id, cleared_pinned_at: Time.now)
   end
 
-  def update_pinned(status)
+  def update_pinned(status, global=false)
     update_column(:pinned_at, status ? Time.now : nil)
+    update_column(:pinned_globally, global)
   end
 
   def draft_key
@@ -705,6 +706,14 @@ class Topic < ActiveRecord::Base
     @secure_group_ids ||= if self.category && self.category.read_restricted?
       self.category.secure_group_ids
     end
+  end
+
+  def has_topic_embed?
+    TopicEmbed.where(topic_id: id).exists?
+  end
+
+  def expandable_first_post?
+    SiteSetting.embeddable_host.present? && SiteSetting.embed_truncate? && has_topic_embed?
   end
 
   private

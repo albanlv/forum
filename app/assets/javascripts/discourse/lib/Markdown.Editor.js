@@ -861,6 +861,7 @@
         var oldInputText;
         var maxDelay = 3000;
         var startType = "delayed"; // The other legal value is "manual"
+        var scrollSyncOn = false && !!panels.previewScroller;
 
         var paneContentHeight = function(pane) {
           var $pane = $(pane);
@@ -869,12 +870,14 @@
           return pane.scrollHeight - paneVerticalPadding;
         };
 
-        var prevScrollPosition = $(panels.input).scrollTop();
-        var caretMarkerPosition = 0;
-        var markerPositions = {
-          scroller: [0, paneContentHeight(panels.previewScroller)],
-          preview: [0, paneContentHeight(panels.preview)]
-        };
+        if (scrollSyncOn) {
+          var prevScrollPosition = $(panels.input).scrollTop();
+          var caretMarkerPosition = 0;
+          var markerPositions = {
+            scroller: [0, paneContentHeight(panels.previewScroller)],
+            preview: [0, paneContentHeight(panels.preview)]
+          };
+        }
 
         var getCaretPosition = function() {
           return Discourse.Utilities.caretPosition(panels.input);
@@ -917,8 +920,8 @@
           return {
             scrollerStart: markerPositions.scroller[startMarkerIndex],
             scrollerEnd: markerPositions.scroller[endMarkerIndex],
-            previewStart: markerPositions.preview[startMarkerIndex],
-            previewEnd: markerPositions.preview[endMarkerIndex]
+            previewStart: markerPositions.preview[startMarkerIndex] || markerPositions.preview[markerPositions.preview.length-1],
+            previewEnd: markerPositions.preview[endMarkerIndex] || markerPositions.preview[markerPositions.preview.length-1]
           };
         };
 
@@ -971,7 +974,6 @@
 
         // Adds event listeners to elements
         var setupEvents = function (inputElem, listener) {
-          
             util.addEvent(inputElem, "input", listener);
             inputElem.onpaste = listener;
             inputElem.ondrop = listener;
@@ -1017,21 +1019,40 @@
 
             var prevTime = new Date().getTime();
 
-            var caretPosition = getCaretPosition();
-            text = text.slice(0, caretPosition) + '~~caret~~' + text.slice(caretPosition);
-            text = text.replace(/(\n|\r|\r\n)(\n|\r|\r\n)+/g, "$&~~marker~~$1$1");
+            var previewText;
+            var previewScrollerText;
 
-            previewText = converter.makeHtml(text.replace('~~caret~~', ''))
-              .replace(/<p>~~marker~~<\/p>/g, '<span class="marker"></span>')
-              .replace(/~~marker~~/g, '<span class="marker"></span>');
+            if (scrollSyncOn) {
+              var caretPosition = getCaretPosition();
 
-            previewScrollerText = text
-              .replace(/&/g, '&amp;')
-              .replace(/</g, '&lt;')
-              .replace(/>/g, '&gt;')
-              .replace(/(\n|\r|\r\n)/g, '<br>')
-              .replace('~~caret~~', '<span class="caret"></span>')
-              .replace(/~~marker~~<br><br>/g, '<span class="marker"></span>');
+              var caret = "465c94fb53b6304c4f57";
+              var marker = "468c94fb53b6304c4f58";
+
+              // add last marker
+              text = text + marker;
+
+              var addMarkers = function(text) {
+                return text.replace(/(\s*)(\n|\n|\r|\r\n)/g, function(m, spaces, newline) {
+                  return marker + spaces + "\n";
+                });
+              }
+
+              previewText = converter.makeHtml(addMarkers(text))
+                .replace(new RegExp(marker, 'g'), '<span class="marker"></span>');
+
+              var withCaret = text.slice(0, caretPosition) + caret + text.slice(caretPosition);
+
+              previewScrollerText = addMarkers(withCaret)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/(\n|\n\r|\r\n)/g, '<br>')
+                .replace(caret, '<span class="caret"></span>')
+                .replace(new RegExp(marker, 'g'), '<span class="marker"></span>');
+
+            } else {
+              previewText = converter.makeHtml(text);
+            }
 
             // Calculate the processing time of the HTML creation.
             // It's used as the delay time in the event listener.
@@ -1040,9 +1061,11 @@
 
             Ember.run(function() {
               pushPreviewHtml(previewText, previewScrollerText);
-              cacheMarkerPositions();
-              cacheCaretMarkerPosition();
-              syncScroll(true);
+              if (scrollSyncOn) {
+                cacheMarkerPositions();
+                cacheCaretMarkerPosition();
+                syncScroll(true);
+              }
             });
         };
 
@@ -1149,12 +1172,16 @@
             };
 
             ieSafeSet(panels.preview, previewText);
-            ieSafeSet(panels.previewScroller, previewScrollerText);
+            if (scrollSyncOn) {
+              ieSafeSet(panels.previewScroller, previewScrollerText);
+            }
         }
 
         var nonSuckyBrowserPreviewSet = function (previewText, previewScrollerText) {
             panels.preview.innerHTML = previewText;
-            panels.previewScroller.innerHTML = previewScrollerText;
+            if (scrollSyncOn) {
+              panels.previewScroller.innerHTML = previewScrollerText;
+            }
         }
 
         var previewSetter;
@@ -1204,7 +1231,9 @@
             // TODO: make option to disable. We don't need this in discourse
             // setupEvents(panels.input, applyTimeout);
 
-            setupScrollSync();
+            if (scrollSyncOn) {
+              setupScrollSync();
+            }
 
             makePreviewHtml();
 
